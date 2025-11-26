@@ -1,0 +1,111 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+
+<div class="alert alert-warning d-flex flex-wrap gap-3 align-items-center justify-content-between">
+  <div class="fw-semibold">Alertas del inventario</div>
+  <div class="d-flex gap-2">
+    {% if anim_bajo_machos > 0 %}
+      <a class="badge text-bg-danger text-decoration-none p-2" href="{% url 'animales:list' %}?alert=low_m">
+        {{ anim_bajo_machos }} jaulas con machos bajo mínimo
+      </a>
+    {% else %}
+      <span class="badge text-bg-secondary p-2">0 jaulas con machos bajo mínimo</span>
+    {% endif %}
+
+    {% if anim_bajo_hembras > 0 %}
+      <a class="badge text-bg-danger text-decoration-none p-2" href="{% url 'animales:list' %}?alert=low_f">
+        {{ anim_bajo_hembras }} jaulas con hembras bajo mínimo
+      </a>
+    {% else %}
+      <span class="badge text-bg-secondary p-2">0 jaulas con hembras bajo mínimo</span>
+    {% endif %}
+
+    {% if ins_bajo_min > 0 %}
+      <a class="badge text-bg-danger text-decoration-none p-2" href="{% url 'insumos:list' %}?alert=critical">
+        {{ ins_bajo_min }} insumos críticos
+      </a>
+    {% else %}
+      <span class="badge text-bg-secondary p-2">0 insumos críticos</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header">Animales</div>
+      <div class="card-body">
+        <p class="mb-1"><strong>Machos:</strong> {{ anim_total_machos }}</p>
+        <p class="mb-1"><strong>Hembras:</strong> {{ anim_total_hembras }}</p>
+        <p class="mb-3"><strong>Total:</strong> {{ anim_total }}</p>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'animales:list' %}">Administrar animales</a>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-header">Últimos movimientos (Animales)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Fecha</th><th>Grupo</th><th>+</th><th>-</th></tr></thead>
+            <tbody>
+              {% for m in ult_mov_animales %}
+                <tr>
+                  <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
+                  <td>{{ m.grupo }}</td>
+                  <td>{{ m.cantidad_machos }} M / {{ m.cantidad_hembras }} F</td>
+                  <td>
+                    {% if m.tipo == m.BAJA or m.tipo == m.FALLECIMIENTO %}Sí{% else %}-{% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-center text-muted">Sin movimientos</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header">Insumos</div>
+      <div class="card-body">
+        <p class="mb-3"><strong>Total de insumos:</strong> {{ ins_total }}</p>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'insumos:list' %}">Administrar insumos</a>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-header">Últimos movimientos (Insumos)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Fecha</th><th>Insumo</th><th>Cantidad</th><th>Motivo</th></tr></thead>
+            <tbody>
+              {% for m in ult_mov_insumos %}
+                <tr>
+                  <td>
+                    {% if m.fecha %}{{ m.fecha|date:"d/m/Y H:i" }}
+                    {% elif m.creado_en %}{{ m.creado_en|date:"d/m/Y H:i" }}
+                    {% else %}-{% endif %}
+                  </td>
+                  <td>{{ m.insumo }}</td>
+                  <td>{{ m.cantidad }}</td>
+                  <td>{{ m.motivo|default:"-" }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-center text-muted">Sin movimientos</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

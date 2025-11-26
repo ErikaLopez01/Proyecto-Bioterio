@@ -1,0 +1,42 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<h3 class="mb-3">Configuración de protocolos</h3>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header">
+        Instituciones
+      </div>
+      <div class="card-body">
+        <p class="mb-2">
+          Administra las instituciones disponibles para asociar a los protocolos.
+        </p>
+        <a href="{% url 'protocolos:instituciones_list' %}" class="btn btn-sm btn-primary">
+          Ver / editar instituciones
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header">
+        Procedimientos base
+      </div>
+      <div class="card-body">
+        <p class="mb-2">
+          Administra la lista de procedimientos disponibles en la sección de procedimientos del protocolo.
+        </p>
+        <a href="{% url 'protocolos:procedimientos_list' %}" class="btn btn-sm btn-primary">
+          Ver / editar procedimientos
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="{% url 'protocolos:list' %}" class="btn btn-outline-secondary btn-sm mt-3">
+  Volver a la lista de protocolos
+</a>
+{% endblock %}

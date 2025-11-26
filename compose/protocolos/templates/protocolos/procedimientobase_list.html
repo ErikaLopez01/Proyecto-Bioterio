@@ -1,0 +1,41 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<h3 class="mb-3">Procedimientos base</h3>
+
+<div class="mb-3 d-flex justify-content-between align-items-center">
+  <a href="{% url 'protocolos:config' %}" class="btn btn-outline-secondary btn-sm">
+    ← Volver a configuración
+  </a>
+  <a href="{% url 'protocolos:procedimientos_new' %}" class="btn btn-primary btn-sm">
+    Nuevo procedimiento
+  </a>
+</div>
+
+<table class="table table-sm align-middle">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th style="width:1%;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for proc in items %}
+      <tr>
+        <td>{{ proc.id }}</td>
+        <td>{{ proc.nombre }}</td>
+        <td class="text-end">
+          <a href="{% url 'protocolos:procedimientos_edit' proc.id %}"
+             class="btn btn-outline-primary btn-sm">
+            Editar
+          </a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="3" class="text-muted">No hay procedimientos configurados.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

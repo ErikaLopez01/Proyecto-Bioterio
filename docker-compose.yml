@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+
+  web:
+    build:
+      context: ./compose
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./compose:/compose
+      - staticfiles:/compose/staticfiles
+      - mediafiles:/compose/media
+    restart: unless-stopped
+    command: /compose/entrypoint.sh
+    healthcheck:
+      # comprueba que el socket 8000 esté aceptando conexiones
+      test: ["CMD-SHELL", "nc -z localhost 8000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      web:
+        condition: service_healthy    # <— espera a que web esté OK
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - staticfiles:/compose/staticfiles:ro
+      - mediafiles:/compose/media:ro
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  staticfiles:
+  mediafiles:

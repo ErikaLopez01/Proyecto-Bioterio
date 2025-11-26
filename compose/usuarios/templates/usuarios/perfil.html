@@ -1,0 +1,17 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<h3>Mi perfil</h3>
+<ul class="list-group mb-3">
+  <li class="list-group-item"><strong>Usuario:</strong> {{ request.user.username }}</li>
+  <li class="list-group-item"><strong>Nombre:</strong> {{ request.user.first_name }} {{ request.user.last_name }}</li>
+  <li class="list-group-item"><strong>Email:</strong> {{ request.user.email }}</li>
+  <li class="list-group-item"><strong>Rol:</strong>
+    {% with g=request.user.groups.all|first %}
+      {{ g.name|default:"(sin rol)" }}
+    {% endwith %}
+  </li>
+</ul>
+<a class="btn btn-outline-secondary" href="{% url 'usuarios:change_password' %}">Cambiar contraseña</a>
+
+
+{% endblock %}

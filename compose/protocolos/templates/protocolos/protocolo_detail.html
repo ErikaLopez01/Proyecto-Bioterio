@@ -1,0 +1,214 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<h3>Protocolo #{{ object.id }} — {{ object.inv_nombre }}</h3>
+<p>
+  <strong>Estado:</strong> {{ object.get_estado_display }}
+  {# Mostrar observación si fue rechazado (cuando agregues el campo) #}
+  {% if object.estado == "rechazado" and object.observacion_rechazo %}
+    <br>
+    <span class="text-danger">
+      <strong>Observación:</strong> {{ object.observacion_rechazo }}
+    </span>
+  {% endif %}
+</p>
+
+<div class="mb-3">
+  {# BOTONES PARA EL CREADOR #}
+  {% if object.creado_por_id == request.user.id %}
+    {% if object.estado == "borrador" or object.estado == "rechazado" %}
+      <a class="btn btn-outline-primary btn-sm"
+         href="{% url 'protocolos:edit' object.id %}">Editar</a>
+
+      <form method="post" action="{% url 'protocolos:send' object.id %}" class="d-inline">
+        {% csrf_token %}
+        <button class="btn btn-success btn-sm">Enviar</button>
+      </form>
+    {% endif %}
+  {% endif %}
+
+  {# BOTONES PARA ADMIN (aprobar / rechazar) CUANDO ESTÁ ENVIADO #}
+  {% if es_admin %}
+    {% if object.estado == "enviado" %}
+      <form class="d-inline" method="post" action="{% url 'protocolos:estado' object.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="aprobar">
+        <button class="btn btn-success btn-sm">Aprobar</button>
+      </form>
+
+      <form class="d-inline" method="post" action="{% url 'protocolos:estado' object.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="rechazar">
+        <input type="text" name="observacion_rechazo"
+               class="form-control d-inline-block ms-2 me-2"
+               style="width: 260px;"
+               placeholder="Motivo del rechazo">
+        <button class="btn btn-danger btn-sm">Rechazar</button>
+      </form>
+    {% endif %}
+  {% endif %}
+
+   {# 🖨 Botón Imprimir solo cuando está APROBADO #}
+  {% if object.estado == "aprobado" or es_admin %}
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'protocolos:print' object.id %}" target="_blank">
+      <i class="bi bi-printer"></i> Imprimir
+    </a>
+  {% endif %}
+</div>
+
+<hr>
+
+<h5>Instituciones</h5>
+<ul>
+  {% for inst in object.instituciones.all %}
+    <li>{{ inst.nombre }}</li>
+  {% empty %}
+    <li class="text-muted">No se registraron instituciones.</li>
+  {% endfor %}
+</ul>
+
+<h5>Investigador responsable</h5>
+<ul>
+  <li><strong>Nombre:</strong> {{ object.inv_nombre }}</li>
+  <li><strong>Departamento:</strong> {{ object.inv_departamento }}</li>
+  <li><strong>Teléfono:</strong> {{ object.inv_telefono }}</li>
+  <li><strong>Correo:</strong> {{ object.inv_email }}</li>
+</ul>
+
+<h5>Investigadores participantes</h5>
+<ul>
+  {% for inv in object.investigadores.all %}
+    <li>
+      {{ inv.nombre }} — {{ inv.rol }}
+      {% if inv.adscripcion %} ({{ inv.adscripcion }}){% endif %}
+      {% if inv.correo %} — {{ inv.correo }}{% endif %}
+    </li>
+  {% empty %}
+    <li class="text-muted">Sin investigadores adicionales.</li>
+  {% endfor %}
+</ul>
+
+<h5>Justificación</h5>
+<pre class="bg-light p-2">{{ object.justificacion }}</pre>
+
+<h5>3R (reemplazo, reducción, refinamiento)</h5>
+<pre class="bg-light p-2">{{ object.justificacion_3r }}</pre>
+
+<h5>Transporte / movilización</h5>
+<pre class="bg-light p-2">{{ object.transporte }}</pre>
+
+<h5>Especies y número de animales</h5>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Especie</th>
+      <th>Cantidad</th>
+      <th>Peso</th>
+      <th>Edad</th>
+      <th>Sexo</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in object.animales.all %}
+      <tr>
+        <td>{{ a.especie }}</td>
+        <td>{{ a.cantidad }}</td>
+        <td>{{ a.rango_peso }}</td>
+        <td>{{ a.rango_edad }}</td>
+        <td>{{ a.get_sexo_display }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-muted">Sin filas.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>
+  <strong>Nº de grupos:</strong> {{ object.n_grupos }} —
+  <strong>Nº por grupo:</strong> {{ object.n_por_grupo }} —
+  <strong>Total animales:</strong> {{ object.n_total }}
+</p>
+
+<h5>Procedimientos</h5>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Procedimiento</th>
+      <th>Aplica</th>
+      <th>Detalle</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for proc in object.procedimientos.all %}
+      <tr>
+        <td>{{ proc.nombre }}</td>
+        <td>{% if proc.aplica %}Sí{% else %}No{% endif %}</td>
+        <td>{{ proc.detalle }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="3" class="text-muted">Sin procedimientos cargados.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5>Descripción detallada de procedimientos</h5>
+<pre class="bg-light p-2">{{ object.descripcion_procedimientos }}</pre>
+
+<h5>Agentes analgésicos / anestésicos / tranquilizantes</h5>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Tipo</th>
+      <th>Agente</th>
+      <th>Dosis</th>
+      <th>Vía</th>
+      <th>Frecuencia</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in object.analgesicos.all %}
+      <tr>
+        <td>{{ a.tipo }}</td>
+        <td>{{ a.agente }}</td>
+        <td>{{ a.dosis }}</td>
+        <td>{{ a.via }}</td>
+        <td>{{ a.frecuencia }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-muted">Sin agentes cargados.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5>Parámetros de anestesia / analgesia</h5>
+<pre class="bg-light p-2">{{ object.parametros_anestesia }}</pre>
+
+<h5>Cuidados pre y post-operatorios</h5>
+<pre class="bg-light p-2">{{ object.cuidados_pre_post }}</pre>
+
+<h5>Punto final humanitario</h5>
+<pre class="bg-light p-2">{{ object.punto_final_humano }}</pre>
+
+<h5>Método de eutanasia</h5>
+<pre class="bg-light p-2">{{ object.metodo_eutanasia }}</pre>
+
+<h5>Riesgo biológico</h5>
+<p>
+  {% if object.riesgo_biologico %}Sí{% else %}No{% endif %}
+  {% if object.riesgo_biologico and object.nivel_absl %}
+    — Nivel ABSL: {{ object.nivel_absl }}
+  {% endif %}
+</p>
+
+<h5>Destino final de los animales</h5>
+<pre class="bg-light p-2">{{ object.destino_animales }}</pre>
+
+<h5>Declaración de buenas prácticas</h5>
+<p>
+  {% if object.declaracion_buena_practica %}
+    El investigador aceptó la declaración de buenas prácticas.
+  {% else %}
+    No se marcó la declaración de buenas prácticas.
+  {% endif %}
+</p>
+
+{% endblock %}

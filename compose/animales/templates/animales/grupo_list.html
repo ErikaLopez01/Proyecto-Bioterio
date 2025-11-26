@@ -1,0 +1,110 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="m-0">Inventario de Animales</h3>
+
+  {# Aviso de filtro activo proveniente del dashboard #}
+{% if request.GET.alert %}
+  <div class="alert alert-warning d-flex justify-content-between align-items-center">
+    <div class="me-3">
+      {% if request.GET.alert == "low_m" %} Mostrando jaulas con <strong>machos</strong> bajo mínimo.
+      {% elif request.GET.alert == "low_f" %} Mostrando jaulas con <strong>hembras</strong> bajo mínimo.
+      {% elif request.GET.alert == "low_any" %} Mostrando jaulas con <strong>machos u hembras</strong> bajo mínimo.
+      {% else %} Filtro de alerta desconocido. {% endif %}
+    </div>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'animales:list' %}">Limpiar filtro</a>
+  </div>
+{% endif %}
+
+  {% if request.user.is_authenticated %}
+  <div class="btn-group">
+    <a class="btn btn-outline-primary" href="{% url 'animales:jaula_new' %}">+ Jaula</a>
+    <a class="btn btn-outline-primary" href="{% url 'animales:especie_new' %}">+ Especie</a>
+    <a class="btn btn-outline-primary" href="{% url 'animales:cepa_new' %}">+ Cepa</a>
+    <a class="btn btn-primary" href="{% url 'animales:create' %}">+ Grupo</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="alert alert-info d-flex gap-4" role="alert">
+  <div class="mb-0"><strong>Machos:</strong> {{ total_machos }}</div>
+  <div class="mb-0"><strong>Hembras:</strong> {{ total_hembras }}</div>
+  <div class="mb-0"><strong>Total:</strong> {{ total_general }}</div>
+</div>
+
+<form class="row g-2 mb-3">
+    <div class="col-auto">
+    <input name="jaula" class="form-control" value="{{ request.GET.jaula }}" placeholder="Filtrar por jaula...">
+  </div>
+
+  <div class="col-auto">
+    <input name="especie" class="form-control" value="{{ request.GET.especie }}" placeholder="Filtrar por especie...">
+  </div>
+
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary">Filtrar</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>Jaula</th>
+      <th>Especie</th>
+      <th>Cepa</th>
+      <th class="text-end">Machos</th>
+      <th class="text-end">Hembras</th>
+      <th class="text-end">Total</th>
+      <th>Alertas</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for g in grupos %}
+    <tr class="{% if g.cantidad_machos < g.stock_minimo_machos or g.cantidad_hembras < g.stock_minimo_hembras %}table-warning{% endif %}">
+      <td>{{ g.jaula }}</td>
+      <td>{{ g.especie }}</td>
+      <td>{{ g.cepa|default:"-" }}</td>
+
+      <td class="text-end">
+        {{ g.cantidad_machos }}
+        {% if g.cantidad_machos < g.stock_minimo_machos %}
+          <span class="badge text-bg-warning ms-1">Bajo M</span>
+        {% endif %}
+      </td>
+
+      <td class="text-end">
+        {{ g.cantidad_hembras }}
+        {% if g.cantidad_hembras < g.stock_minimo_hembras %}
+          <span class="badge text-bg-warning ms-1">Bajo F</span>
+        {% endif %}
+      </td>
+
+      <td class="text-end">{{ g.cantidad_machos|add:g.cantidad_hembras }}</td>
+
+      <td>
+        {% if g.cantidad_machos < g.stock_minimo_machos or g.cantidad_hembras < g.stock_minimo_hembras %}
+          <span class="badge text-bg-danger">Revisar</span>
+        {% else %}
+          <span class="badge text-bg-success">OK</span>
+        {% endif %}
+      </td>
+
+      <td class="text-end">
+        {% if request.user.is_authenticated %}
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'animales:update' g.pk %}">Editar</a>
+          <a class="btn btn-sm btn-outline-danger" href="{% url 'animales:delete' g.pk %}">Eliminar</a>
+          <a class="btn btn-sm btn-success" href="{% url 'animales:mov_new' g.pk %}">+ Movimiento</a>
+        {% else %}
+          <span class="text-muted">Solo lectura</span>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="8" class="text-center text-muted">No hay grupos</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

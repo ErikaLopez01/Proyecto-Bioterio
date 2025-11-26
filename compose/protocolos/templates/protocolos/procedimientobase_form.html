@@ -1,0 +1,35 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<h3 class="mb-3">
+  {% if object %}
+    Editar procedimiento base
+  {% else %}
+    Nuevo procedimiento base
+  {% endif %}
+</h3>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <div class="mb-3">
+    <label class="form-label">Nombre del procedimiento</label>
+    {{ form.nombre }}
+    {{ form.nombre.errors }}
+  </div>
+
+  <div class="d-flex gap-2">
+    <a href="{% url 'protocolos:procedimientos_list' %}" class="btn btn-outline-secondary">
+      Cancelar
+    </a>
+    <button type="submit" class="btn btn-primary">
+      Guardar
+    </button>
+  </div>
+</form>
+{% endblock %}

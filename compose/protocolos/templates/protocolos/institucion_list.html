@@ -1,0 +1,49 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<h3 class="mb-3">Instituciones</h3>
+
+<div class="mb-3 d-flex justify-content-between align-items-center">
+  <a href="{% url 'protocolos:config' %}" class="btn btn-outline-secondary btn-sm">
+    ← Volver a configuración
+  </a>
+  <a href="{% url 'protocolos:instituciones_new' %}" class="btn btn-primary btn-sm">
+    Nueva institución
+  </a>
+</div>
+
+<table class="table table-sm align-middle">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Activa</th>
+      <th style="width:1%;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for inst in items %}
+      <tr>
+        <td>{{ inst.id }}</td>
+        <td>{{ inst.nombre }}</td>
+        <td>
+          {% if inst.activo %}
+            <span class="badge text-bg-success">Sí</span>
+          {% else %}
+            <span class="badge text-bg-secondary">No</span>
+          {% endif %}
+        </td>
+        <td class="text-end">
+          <a href="{% url 'protocolos:instituciones_edit' inst.id %}"
+             class="btn btn-outline-primary btn-sm">
+            Editar
+          </a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="4" class="text-muted">No hay instituciones configuradas.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="m-0">Listado de Insumos</h3>
+
+  {% if request.GET.critico %}
+  <div class="alert alert-warning d-flex justify-content-between align-items-center">
+    <div>Mostrando <strong>insumos críticos</strong> (stock bajo el mínimo).</div>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'insumos:list' %}">Limpiar filtro</a>
+  </div>
+{% endif %}
+
+  <div>
+    <a href="{% url 'insumos:categoria_create' %}" class="btn btn-outline-primary">+ Categoría</a>
+    <a href="{% url 'insumos:create' %}" class="btn btn-primary">+ Insumo</a>
+  </div>
+</div>
+
+<form class="row g-2 mb-3">
+  <div class="col-auto">
+    <input name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nombre...">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary">Buscar</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Categoría</th>
+      <th>Unidad</th>
+      <th class="text-end">Stock</th>
+      <th class="text-end">Mínimo</th>
+      <th class="text-end">Precio</th>
+      <th>Estado</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for i in insumos %}
+    <tr>
+      <td>{{ i.nombre }}</td>
+      <td>{{ i.categoria }}</td>
+      <td>{{ i.get_unidad_display }}</td>
+      <td class="text-end">
+        {{ i.stock_actual }}
+          {% if i.stock_actual < i.stock_minimo %}
+           <span class="badge text-bg-warning ms-1">Bajo</span>
+          {% endif %}
+      </td>
+      <td class="text-end">{{ i.stock_minimo }}</td>
+      <td class="text-end">{{ i.precio_unitario }}</td>
+      <td>
+        {% if i.activo %}<span class="badge text-bg-success">Activo</span>
+        {% else %}<span class="badge text-bg-secondary">Inactivo</span>{% endif %}
+      </td>
+      <td class="text-end">
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'insumos:update' i.pk %}">Editar</a>
+        <a class="btn btn-sm btn-outline-danger" href="{% url 'insumos:delete' i.pk %}">Eliminar</a>
+        <a class="btn btn-sm btn-success" href="{% url 'insumos:nuevo_mov' i.pk %}">+ Movimiento</a>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="8" class="text-center text-muted">No hay insumos</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

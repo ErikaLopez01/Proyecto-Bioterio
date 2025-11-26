@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Protocolo #{{ object.id }} – {{ object.inv_nombre }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    /* Estilos básicos para impresión */
+    body {
+      font-family: "Helvetica", Arial, sans-serif;
+      font-size: 12pt;
+      color: #000;
+      margin: 2cm;
+    }
+    h1, h2, h3, h4 {
+      margin: 0 0 .5rem 0;
+      font-weight: 600;
+    }
+    h1 {
+      text-align: center;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      margin-top: 1.5rem;
+      margin-bottom: .3rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid #000;
+      padding-bottom: .15rem;
+    }
+    .field-label {
+      font-weight: 600;
+    }
+    .box {
+      border: 1px solid #444;
+      padding: .5rem .75rem;
+      margin-bottom: .5rem;
+      white-space: pre-wrap;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: .25rem .4rem;
+      font-size: 11pt;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    .meta {
+      font-size: 10pt;
+      margin-bottom: 1rem;
+    }
+    .firma-block {
+      margin-top: 4cm;
+      text-align: center;
+    }
+    .firma-line {
+      border-top: 1px solid #000;
+      width: 60%;
+      margin: 0 auto .25rem auto;
+    }
+    .no-print {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+    }
+    .no-print button {
+      padding: .4rem .8rem;
+      font-size: 10pt;
+    }
+
+    @media print {
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  {# Botón solo visible en pantalla, no en el papel #}
+  <div class="no-print">
+    <button type="button" onclick="window.print();">Imprimir / Guardar PDF</button>
+  </div>
+
+  <h1>Formulario de Protocolo CICUAL</h1>
+
+  <div class="meta">
+    <div><span class="field-label">Protocolo Nº:</span> {{ object.id }}</div>
+    <div><span class="field-label">Estado:</span> {{ object.get_estado_display }}</div>
+    <div><span class="field-label">Fecha de creación:</span> {{ object.creado_en|date:"d/m/Y H:i" }}</div>
+  </div>
+
+  <!-- A. Datos del Investigador Responsable -->
+  <div class="section-title">A. Datos del Investigador Responsable</div>
+  <p><span class="field-label">Nombre:</span> {{ object.inv_nombre }}</p>
+  <p><span class="field-label">Departamento / Unidad:</span> {{ object.inv_departamento }}</p>
+  <p><span class="field-label">Teléfono:</span> {{ object.inv_telefono }}</p>
+  <p><span class="field-label">Correo:</span> {{ object.inv_email }}</p>
+
+  <!-- Instituciones -->
+    <tr>
+  <td colspan="4">
+    <strong>Institución donde se realizará el proyecto</strong>
+  </td>
+</tr>
+<tr>
+  <td colspan="4" style="vertical-align: top;">
+    <div>
+      {% for inst in object.instituciones.all %}
+        {{ inst.nombre }}<br>
+      {% empty %}
+        <span class="text-muted">No se registraron instituciones.</span>
+      {% endfor %}
+    </div>
+  </td>
+</tr>
+
+  <!-- Investigadores participantes -->
+  {% if object.investigadores.all %}
+    <div class="section-title">Investigadores que participarán en el protocolo</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Adscripción</th>
+          <th>Rol</th>
+          <th>Correo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in object.investigadores.all %}
+          <tr>
+            <td>{{ inv.nombre }}</td>
+            <td>{{ inv.adscripcion }}</td>
+            <td>{{ inv.rol }}</td>
+            <td>{{ inv.correo }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <!-- Justificación -->
+  <div class="section-title">Justificación del experimento y los procedimientos</div>
+  <div class="box">{{ object.justificacion }}</div>
+
+  <!-- 3R -->
+  <div class="section-title">Justificación (principios de las 3R: reemplazo, reducción y refinamiento)</div>
+  <div class="box">{{ object.justificacion_3r }}</div>
+
+  <!-- Transporte -->
+  {% if object.transporte %}
+    <div class="section-title">Transporte o movilización de los animales</div>
+    <div class="box">{{ object.transporte }}</div>
+  {% endif %}
+
+  <!-- Animales -->
+  <div class="section-title">Especies y número de animales</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Especie</th>
+        <th>Cantidad</th>
+        <th>Rango de peso</th>
+        <th>Rango de edad</th>
+        <th>Sexo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in object.animales.all %}
+        <tr>
+          <td>{{ a.especie }}</td>
+          <td>{{ a.cantidad }}</td>
+          <td>{{ a.rango_peso }}</td>
+          <td>{{ a.rango_edad }}</td>
+          <td>{{ a.get_sexo_display }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5">Sin animales registrados.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p>
+    <span class="field-label">Nº de grupos experimentales:</span> {{ object.n_grupos }}<br>
+    <span class="field-label">Nº de animales por grupo:</span> {{ object.n_por_grupo }}<br>
+    <span class="field-label">Nº total de animales:</span> {{ object.n_total }}
+  </p>
+
+  <!-- Procedimientos -->
+  <div class="section-title">Procedimientos</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Procedimiento</th>
+        <th>¿Aplica?</th>
+        <th>Detalle / Frecuencia / Vía</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in object.procedimientos.all %}
+        <tr>
+          <td>{{ p.nombre }}</td>
+          <td>{% if p.aplica %}Sí{% else %}No{% endif %}</td>
+          <td>{{ p.detalle }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">Sin procedimientos registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if object.descripcion_procedimientos %}
+    <div class="section-title">Descripción detallada de los procedimientos</div>
+    <div class="box">{{ object.descripcion_procedimientos }}</div>
+  {% endif %}
+
+  <!-- Analgésicos / Anestésicos / Tranquilizantes -->
+  <div class="section-title">Agentes analgésicos, anestésicos y/o tranquilizantes</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Agente</th>
+        <th>Dosis</th>
+        <th>Vía de administración</th>
+        <th>Frecuencia</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in object.analgesicos.all %}
+        <tr>
+          <td>{{ a.tipo }}</td>
+          <td>{{ a.agente }}</td>
+          <td>{{ a.dosis }}</td>
+          <td>{{ a.via }}</td>
+          <td>{{ a.frecuencia }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">Sin agentes registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if object.parametros_anestesia %}
+    <div class="section-title">Parámetros para conocer el grado de anestesia / analgesia</div>
+    <div class="box">{{ object.parametros_anestesia }}</div>
+  {% endif %}
+
+  <!-- Bioseguridad -->
+  <div class="section-title">Bioseguridad y riesgos</div>
+  {% if object.cuidados_pre_post %}
+    <p class="field-label">Cuidados pre y post-operatorios:</p>
+    <div class="box">{{ object.cuidados_pre_post }}</div>
+  {% endif %}
+  {% if object.punto_final_humano %}
+    <p class="field-label">Punto final humanitario:</p>
+    <div class="box">{{ object.punto_final_humano }}</div>
+  {% endif %}
+  {% if object.metodo_eutanasia %}
+    <p class="field-label">Método de eutanasia:</p>
+    <div class="box">{{ object.metodo_eutanasia }}</div>
+  {% endif %}
+  <p>
+    <span class="field-label">¿Riesgo biológico?:</span>
+    {% if object.riesgo_biologico %}Sí{% else %}No{% endif %}<br>
+    {% if object.nivel_absl %}
+      <span class="field-label">Nivel ABSL requerido:</span> {{ object.nivel_absl }}
+    {% endif %}
+  </p>
+
+  <!-- Destino de los animales -->
+  {% if object.destino_animales %}
+    <div class="section-title">Destino final de los animales</div>
+    <div class="box">{{ object.destino_animales }}</div>
+  {% endif %}
+
+  <!-- Declaración de buenas prácticas -->
+  {% if object.declaracion_buena_practica %}
+    <div class="section-title">Declaración de buenas prácticas</div>
+    <p>
+      El investigador responsable declara conocer y cumplir las normas de buenas prácticas
+      en el uso y manejo de animales de laboratorio según las normativas institucionales
+      y regulaciones vigentes.
+    </p>
+  {% endif %}
+
+  <!-- Firma -->
+  <div class="firma-block">
+    <div class="firma-line"></div>
+    <div>{{ object.inv_nombre }}</div>
+    <div>Investigador/a Responsable</div>
+  </div>
+
+</body>
+</html>

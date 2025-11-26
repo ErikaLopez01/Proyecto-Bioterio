@@ -1,0 +1,12 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<h3 class="mb-3">{{ form.instance.pk|yesno:"Editar Especia,Nueva Especie" }}</h3>
+<form method="post" class="card card-body">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <div class="mt-2">
+    <button class="btn btn-primary">Guardar</button>
+    <a class="btn btn-secondary" href="{% url 'animales:list' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,795 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<style>
+  .cicual-title { letter-spacing:.06em; font-weight:700; }
+  .section-hint { font-size:.9rem; opacity:.7; }
+  .sticky-actions { position: sticky; bottom: 0; background: #fff; padding: .75rem; border-top: 1px solid rgba(0,0,0,.075); }
+  .required-asterisk::after { content:" *"; color:#dc3545; }
+</style>
+
+<div class="row justify-content-center">
+  <div class="col-xl-9 col-lg-10">
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white">
+        <div class="d-flex align-items-center">
+          <div class="me-3"><i class="bi bi-clipboard2-pulse fs-3"></i></div>
+          <div>
+            <div class="small text-uppercase">Formulario CICUAL – Solicitud de Protocolo</div>
+            <div class="cicual-title">Nuevo protocolo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body">
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            <strong>Revise los campos marcados en rojo.</strong>
+            {{ form.errors }}
+          </div>
+        {% endif %}
+        {% if formset_invest.non_form_errors %}
+          <div class="alert alert-danger">{{ formset_invest.non_form_errors }}</div>
+        {% endif %}
+        {% if formset_animales.non_form_errors %}
+          <div class="alert alert-danger">{{ formset_animales.non_form_errors }}</div>
+        {% endif %}
+        {% if formset_proc.non_form_errors %}
+          <div class="alert alert-danger">{{ formset_proc.non_form_errors }}</div>
+        {% endif %}
+        {% if formset_anlg.non_form_errors %}
+          <div class="alert alert-danger">{{ formset_anlg.non_form_errors }}</div>
+        {% endif %}
+
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          <div class="accordion" id="acCicual">
+
+            {# A. Datos del Investigador/a #}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="hA">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#cA" aria-expanded="true" aria-controls="cA">
+                  A. Datos del/la Investigador/a Responsable
+                </button>
+              </h2>
+              <div id="cA" class="accordion-collapse collapse show" aria-labelledby="hA" data-bs-parent="#acCicual">
+                <div class="accordion-body">
+                  <div class="row g-3">
+                    {% if form.instituciones %}
+                      <div class="col-12">
+                        <label class="form-label">Instituciones donde se realizará el proyecto</label>
+                        {{ form.instituciones }} {{ form.instituciones.errors }}
+                        <div class="form-text">Puede seleccionar una o varias instituciones.</div>
+                      </div>
+                    {% endif %}
+                    
+                    {% if form.inv_nombre %}
+                      <div class="col-md-6"> 
+                        <label class="form-label required-asterisk">Nombre</label>
+                        {{ form.inv_nombre }} {{ form.inv_nombre.errors }}
+                      </div>
+                    {% endif %}
+                    {% if form.inv_departamento %}
+                      <div class="col-md-6">
+                        <label class="form-label">Departamento</label>
+                        {{ form.inv_departamento }} {{ form.inv_departamento.errors }}
+                      </div>
+                    {% endif %}
+                    {% if form.inv_telefono %}
+                      <div class="col-md-3">
+                        <label class="form-label">Teléfono</label>
+                        {{ form.inv_telefono }} {{ form.inv_telefono.errors }}
+                      </div>
+                    {% endif %}
+                    {% if form.inv_email %}
+                      <div class="col-md-6">
+                        <label class="form-label">Correo</label>
+                        {{ form.inv_email }} {{ form.inv_email.errors }}
+                      </div>
+                    {% endif %}
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+          {# A2. Investigadores participantes #}
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="hA2">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#cA2"
+                      aria-expanded="false" aria-controls="cA2">
+                A.2 Investigadores que Participarán en el Protocolo
+              </button>
+            </h2>
+            <div id="cA2" class="accordion-collapse collapse" aria-labelledby="hA2" data-bs-parent="#acCicual">
+              <div class="accordion-body">
+
+                {{ formset_invest.management_form }}
+
+                <div id="invest-rows" data-prefix="{{ formset_invest.prefix }}">
+                  {% for f in formset_invest.forms %}
+                    <div class="border rounded p-3 mb-3" data-row>
+                      <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                          <label class="form-label required-asterisk">Nombre</label>
+                          {{ f.nombre }} {{ f.nombre.errors }}
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label">Adscripción</label>
+                          {{ f.adscripcion }} {{ f.adscripcion.errors }}
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label">Rol</label>
+                          {{ f.rol }} {{ f.rol.errors }}
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label">Correo</label>
+                          {{ f.correo }} {{ f.correo.errors }}
+                        </div>
+
+                        {# >>> ESTE WRAPPER FALTABA <<< #}
+                        <div class="col-12 d-flex align-items-center gap-3 mt-2">
+                          {% if f.DELETE %} {{ f.DELETE }} {% endif %}
+                          <button type="button" class="btn btn-outline-danger btn-sm ms-auto"
+                                  onclick="deleteInvestRow(this)">
+                            <i class="bi bi-trash"></i> Quitar
+                          </button>
+                        </div>
+                        {# ---------------------------- #}
+                      </div>
+                    </div>
+                  {% empty %}{% endfor %}
+                </div>
+
+                <template id="invest-prototype">
+                  <div class="border rounded p-3 mb-3" data-row>
+                    {% with form=formset_invest.empty_form %}
+                    <div class="row g-3 align-items-end">
+                      <div class="col-md-4">
+                        <label class="form-label required-asterisk" for="{{ form.nombre.id_for_label }}">Nombre</label>
+                        {{ form.nombre }}
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label" for="{{ form.adscripcion.id_for_label }}">Adscripción</label>
+                        {{ form.adscripcion }}
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label" for="{{ form.rol.id_for_label }}">Rol</label>
+                        {{ form.rol }}
+                      </div>
+                      <div class="col-md-2">
+                        <label class="form-label" for="{{ form.correo.id_for_label }}">Correo</label>
+                        {{ form.correo }}
+                      </div>
+                      <div class="col-12 d-flex align-items-center gap-3 mt-2">
+                        {% if form.DELETE %} {{ form.DELETE }} {% endif %}
+                        <button type="button" class="btn btn-outline-danger btn-sm ms-auto"
+                                onclick="deleteInvestRow(this)">
+                          <i class="bi bi-trash"></i> Quitar
+                        </button>
+                      </div>
+                    </div>
+                    {% endwith %}
+                  </div>
+                </template>
+
+                <div class="d-grid">
+                  <button type="button" class="btn btn-outline-primary" onclick="addInvestRow()">
+                    <i class="bi bi-plus-circle"></i> Agregar investigador
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+            
+
+            {# B. Proyecto, justificación y objetivos #}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="hB">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cB" aria-expanded="false" aria-controls="cB">
+                  B. Proyecto – Resumen, Justificación (3R) y Objetivos
+                </button>
+              </h2>
+              <div id="cB" class="accordion-collapse collapse" aria-labelledby="hB" data-bs-parent="#acCicual">
+                <div class="accordion-body">
+                  {% if form.justificacion %}
+                    <div class="mb-3">
+                      <label class="form-label required-asterisk">Justificación del experimento y los procedimientos en el uso de animales</label>
+                      {{ form.justificacion }} {{ form.justificacion.errors }}
+                    </div>
+                  {% endif %}
+                  
+                  {% if form.justificacion_3r %}
+                    <div class="mb-3">
+                      <label class="form-label">
+                        Justificación de la cantidad de animales participantes en el estudio tomando en cuenta los principios básicos de las tres “R”, remplazo, reducción y refinamiento.
+                      </label>
+                      {{ form.justificacion_3r }} {{ form.justificacion_3r.errors }}
+                    </div>
+                  {% endif %}
+                  {% if form.transporte %}
+                    <div class="mb-3">
+                      <label class="form-label">
+                        Describir cómo se realizará el transporte o movilización de los animales experimentales fuera de las instalaciones, en caso de ser necesario.
+                      </label>
+                      {{ form.transporte }} {{ form.transporte.errors }}
+                    </div>
+                  {% endif %}
+                  {% if form.objetivos %}
+                    <div class="mb-3">
+                      <label class="form-label">Objetivos</label>
+                      {{ form.objetivos }} {{ form.objetivos.errors }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            {# C. Especies y número de animales #}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="hC">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#cC" aria-expanded="false" aria-controls="cC">
+                  C. Especies, cepa y número de animales
+                </button>
+              </h2>
+              <div id="cC" class="accordion-collapse collapse" aria-labelledby="hC" data-bs-parent="#acCicual">
+                <div class="accordion-body">
+
+                  {# --- FORMSET DE ANIMALES (filas dinámicas) --- #}
+                  {{ formset_animales.management_form }}
+
+                  <div class="table-responsive mb-3">
+                    <table class="table table-sm align-middle">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Especie</th>
+                          <th>Cantidad</th>
+                          <th>Rango de peso</th>
+                          <th>Rango de edad</th>
+                          <th>Sexo</th>
+                          <th style="width: 1%;"></th>
+                        </tr>
+                      </thead>
+                      <tbody id="animal-rows" data-prefix="{{ formset_animales.prefix }}">
+                        {% for f in formset_animales.forms %}
+                          <tr data-row>
+                            <td>
+                              {{ f.especie }} {{ f.especie.errors }}
+                            </td>
+                            <td style="max-width: 120px;">
+                              {{ f.cantidad }} {{ f.cantidad.errors }}
+                            </td>
+                            <td>
+                              {{ f.rango_peso }} {{ f.rango_peso.errors }}
+                            </td>
+                            <td>
+                              {{ f.rango_edad }} {{ f.rango_edad.errors }}
+                            </td>
+                            <td style="max-width: 120px;">
+                              {{ f.sexo }} {{ f.sexo.errors }}
+                            </td>
+                            <td class="text-end">
+                              {% if f.DELETE %}{{ f.DELETE }}{% endif %}
+                              <button type="button" class="btn btn-outline-danger btn-sm"
+                                      onclick="deleteAnimalRow(this)">
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        {% empty %}
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <template id="animal-prototype">
+                    {% with form=formset_animales.empty_form %}
+                    <tr data-row>
+                      <td>
+                        {{ form.especie }}
+                      </td>
+                      <td style="max-width: 120px;">
+                        {{ form.cantidad }}
+                      </td>
+                      <td>
+                        {{ form.rango_peso }}
+                      </td>
+                      <td>
+                        {{ form.rango_edad }}
+                      </td>
+                      <td style="max-width: 120px;">
+                        {{ form.sexo }}
+                      </td>
+                      <td class="text-end">
+                        {% if form.DELETE %}{{ form.DELETE }}{% endif %}
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                onclick="deleteAnimalRow(this)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    {% endwith %}
+                  </template>
+
+                  <div class="d-grid mb-4">
+                    <button type="button" class="btn btn-outline-primary" onclick="addAnimalRow()">
+                      <i class="bi bi-plus-circle"></i> Agregar animal / especie
+                    </button>
+                  </div>
+
+                  {# --- CAMPOS FINALES FIJOS (NO FORMSET) --- #}
+                  <div class="row g-3">
+                    {% if form.n_grupos %}
+                      <div class="col-md-4">
+                        <label class="form-label">Nº de Grupos experimentales</label>
+                        {{ form.n_grupos }} {{ form.n_grupos.errors }}
+                      </div>
+                    {% endif %}
+
+                    {% if form.n_por_grupo %}
+                      <div class="col-md-4">
+                        <label class="form-label">Nº de animales por grupo</label>
+                        {{ form.n_por_grupo }} {{ form.n_por_grupo.errors }}
+                      </div>
+                    {% endif %}
+
+                    {% if form.n_total %}
+                      <div class="col-md-4">
+                        <label class="form-label required-asterisk">Nº Total de animales</label>
+                        {{ form.n_total }} {{ form.n_total.errors }}
+                      </div>
+                    {% endif %}
+                  </div>
+
+                  {% if form.criterios_inclusion %}
+                    <div class="mt-3">
+                      <label class="form-label">Criterios de inclusión / exclusión</label>
+                      {{ form.criterios_inclusion }} {{ form.criterios_inclusion.errors }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+
+            {# D. Procedimientos y duración #}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="hD">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#cD"
+                        aria-expanded="false" aria-controls="cD">
+                  D. Procedimientos y duración
+                </button>
+              </h2>
+
+              <div id="cD" class="accordion-collapse collapse"
+                  aria-labelledby="hD" data-bs-parent="#acCicual">
+                <div class="accordion-body">
+
+                  {% if form.tiempo_permanencia %}
+                    <div class="mb-3">
+                      <label class="form-label">
+                        Especificar el tiempo que permanecerán los animales dentro el protocolo.
+                      </label>
+                      {{ form.tiempo_permanencia }} {{ form.tiempo_permanencia.errors }}
+                    </div>
+                  {% endif %}
+
+                  {{ formset_proc.management_form }}
+
+                  <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Procedimiento</th>
+                          <th style="width: 90px;">¿Aplica?</th>
+                          <th>Frecuencia, cantidad y vía</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for f in formset_proc.forms %}
+                          <tr>
+                            <td>
+                              {{ f.nombre_label }}   {# texto solo lectura #}
+                              {{ f.nombre }}         {# hidden con el id de ProcedimientoBase #}
+                              {{ f.nombre.errors }}
+                            </td>
+                            <td class="text-center">
+                              {{ f.aplica }} {{ f.aplica.errors }}
+                            </td>
+                            <td>
+                              {{ f.detalle }} {{ f.detalle.errors }}
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {% if form.descripcion_procedimientos %}
+                    <div class="mb-3">
+                      <label class="form-label">
+                        Describir detalladamente los procedimientos a realizar incluyendo material, sujeción, vías de administración o toma de muestra, frecuencia, número de veces de muestreo, volumen de aplicación y volumen de toma de muestra, etc.
+                      </label>
+                      {{ form.descripcion_procedimientos }} {{ form.descripcion_procedimientos.errors }}
+                    </div>
+                  {% endif %}
+
+                </div>
+              </div>
+            </div>
+
+
+            {# E. Agentes analgésicos / anestésicos / tranquilizantes #}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="hE">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#cE"
+                        aria-expanded="false" aria-controls="cE">
+                  E. Agentes analgésicos, anestésicos y/o tranquilizantes
+                </button>
+              </h2>
+              <div id="cE" class="accordion-collapse collapse"
+                  aria-labelledby="hE" data-bs-parent="#acCicual">
+                <div class="accordion-body">
+
+                  {% if formset_anlg.non_form_errors %}
+                    <div class="alert alert-danger">{{ formset_anlg.non_form_errors }}</div>
+                  {% endif %}
+
+                  {{ formset_anlg.management_form }}
+
+                  {# plantilla vacía para clonar filas #}
+                  <template id="anlg-empty-form">
+                    <tr data-anlg-row>
+                      {% with form=formset_anlg.empty_form %}
+                        <td>{{ form.tipo }}</td>
+                        <td>{{ form.agente }}</td>
+                        <td>{{ form.dosis }}</td>
+                        <td>{{ form.via }}</td>
+                        <td>{{ form.frecuencia }}</td>
+                        {% if form.DELETE %}
+                          <td class="text-end">
+                            {{ form.DELETE }}
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                    onclick="deleteAnlgRow(this)">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </td>
+                        {% else %}
+                          <td class="text-end">
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                    onclick="deleteAnlgRow(this)">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </td>
+                        {% endif %}
+                      {% endwith %}
+                    </tr>
+                  </template>
+
+                  <div class="table-responsive mb-3">
+                    <table class="table table-sm align-middle">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Tipo</th>
+                          <th>Agente</th>
+                          <th>Dosis</th>
+                          <th>Vía de administración</th>
+                          <th>Frecuencia</th>
+                          <th style="width:1%;"></th>
+                        </tr>
+                      </thead>
+                      <tbody id="anlg-rows" data-prefix="{{ formset_anlg.prefix }}">
+                        {% for f in formset_anlg.forms %}
+                          <tr data-anlg-row>
+                            <td>
+                              {{ f.tipo }} {{ f.tipo.errors }}
+                            </td>
+                            <td>
+                              {{ f.agente }} {{ f.agente.errors }}
+                            </td>
+                            <td>
+                              {{ f.dosis }} {{ f.dosis.errors }}
+                            </td>
+                            <td>
+                              {{ f.via }} {{ f.via.errors }}
+                            </td>
+                            <td>
+                              {{ f.frecuencia }} {{ f.frecuencia.errors }}
+                            </td>
+                            <td class="text-end">
+                              {% if f.DELETE %}{{ f.DELETE }}{% endif %}
+                              <button type="button" class="btn btn-outline-danger btn-sm"
+                                      onclick="deleteAnlgRow(this)">
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        {% empty %}
+                          {# sin filas (raro, porque extra=1), pero no pasa nada #}
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="d-grid">
+                    <button type="button" class="btn btn-outline-primary"
+                            onclick="addAnlgRow()">
+                      <i class="bi bi-plus-circle"></i> Agregar agente
+                    </button>
+                  </div>
+
+                  {% if form.parametros_anestesia %}
+                    <div class="mb-3" style="margin-top: 2rem;">
+                      <label class="form-label">
+                        ¿Qué parámetros  empleará para conocer el grado de Anestesia o analgesia del animal?
+                      </label>
+                      {{ form.parametros_anestesia }} {{ form.parametros_anestesia.errors }}
+                    </div>
+                  {% endif %}
+
+                </div>
+              </div>
+            </div>
+
+            {# F. Bioseguridad #}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="hF">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cF" aria-expanded="false" aria-controls="cF">
+                  F. Bioseguridad y riesgos
+                </button>
+              </h2>
+              <div id="cF" class="accordion-collapse collapse" aria-labelledby="hF" data-bs-parent="#acCicual">
+                <div class="accordion-body">
+                  <div class="row g-3">
+                    {% if form.cuidados_pre_post %}
+                      <div class="mb-3">
+                        <label class="form-label">
+                          Cuando el protocolo incluya procedimientos invasivos de categorías C, D y E  (cirugías) especificar los cuidados pre y post-operatorios (utilización de antibióticos, analgésicos, limpieza y desinfección). 
+                        </label>
+                        {{ form.cuidados_pre_post }} {{ form.cuidados_pre_post.errors }}
+                      </div>
+                    {% endif %}
+                    {% if form.punto_final_humano %}
+                      <div class="mb-3">
+                        <label class="form-label">
+                          ¿Cuáles serán los criterios para establecer el “punto final humanitario”? 
+                          Para mayor información: Canadian Council on Animal Care
+                          http://www.ccac.ca/Documents/Standards/Guidelines/Appropriate_endpoint.pdf
+                        </label>
+                        {{ form.punto_final_humano }} {{ form.punto_final_humano.errors }}
+                      </div>
+                    {% endif %}
+
+                    {% if form.metodo_eutanasia %}
+                      <div class="mb-3">
+                        <label class="form-label">
+                          ¿Cuál será el método de eutanasia que utilizará?
+                        </label>
+                        {{ form.metodo_eutanasia }} {{ form.metodo_eutanasia.errors }}
+                      </div>
+                    {% endif %}
+
+                    {# --- Pregunta de riesgo biológico --- #}
+                    <div class="border rounded p-3 mb-3">
+                      <label class="form-label fw-bold">
+                        ¿El protocolo representa riesgo biológico?
+                      </label>
+
+                      <div class="ms-3 mb-2">
+                        {{ form.riesgo_biologico }} {{ form.riesgo_biologico.errors }}
+                      </div>
+
+                      <p class="text-muted mt-2" style="font-size: .9rem;">
+                        Si la respuesta es afirmativa, defina el Nivel de Bioseguridad para Animales (ABSL) requerido.
+                        Se recomienda consultar la clasificación del Center for Disease Control and Prevention.
+                      </p>
+
+                      <a href="http://www.cdc.gov/biosafety/publications/bmbl5/BMBL5_sect_V.pdf"
+                        target="_blank">
+                        http://www.cdc.gov/biosafety/publications/bmbl5/BMBL5_sect_V.pdf
+                      </a>
+
+                      <div class="mt-3">
+                        <label class="form-label">Nivel ABSL requerido</label>
+                        {{ form.nivel_absl }} {{ form.nivel_absl.errors }}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            {# G. Declaraciones #}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="hH">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#cH"
+                        aria-expanded="false" aria-controls="cH">
+                  G. Declaraciones
+                </button>
+              </h2>
+
+              <div id="cH" class="accordion-collapse collapse"
+                  aria-labelledby="hH" data-bs-parent="#acCicual">
+                <div class="accordion-body">
+
+                  {% if form.declaracion_buena_practica %}
+                    <div class="p-3 border rounded bg-light">
+
+                      <label class="form-label fw-semibold d-block mb-2">
+                        Declaración de compromiso
+                      </label>
+
+                      <div class="d-flex justify-content-center mb-2">
+                        <div class="form-check">
+                          {{ form.declaracion_buena_practica }}
+                          <label class="form-check-label ms-1">
+                            Acepto y me comprometo
+                          </label>
+                        </div>
+                      </div>
+
+                      <p class="small mt-2">
+                        Me comprometo a que mi grupo de investigación conducirá el protocolo de
+                        investigación de acuerdo con los lineamientos éticos y humanitarios que
+                        rigen la experimentación con animales, así como cumplir los aspectos
+                        relativos al cuidado, manejo y uso de los animales que se describen en la
+                        NOM-062-ZOO-1999.
+                      </p>
+
+                      {{ form.declaracion_buena_practica.errors }}
+                    </div>
+                  {% endif %}
+
+                </div>
+              </div>
+            </div>
+
+
+           
+          </div>
+
+          <div class="sticky-actions mt-3 d-flex gap-2 justify-content-end">
+            <a class="btn btn-outline-secondary" href="{% url 'protocolos:list' %}">Cancelar</a>
+            <button class="btn btn-primary">Guardar y continuar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function addInvestRow() {
+  const container = document.getElementById('invest-rows');
+  if (!container) return;
+
+  const prefix = container.dataset.prefix;              // p.ej. "invest"
+  const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+  if (!total) return;
+
+  const idx = parseInt(total.value || '0', 10);
+
+  // Clonamos desde <template>
+  const tpl = document.getElementById('invest-prototype');
+  const frag = tpl.content.cloneNode(true);
+  const node = frag.querySelector('[data-row]');
+
+  // Reemplazamos __prefix__ en name/id/for
+  node.querySelectorAll('[name]').forEach(el => el.name = el.name.replace('__prefix__', idx));
+  node.querySelectorAll('[id]').forEach(el => el.id = el.id.replace('__prefix__', idx));
+  node.querySelectorAll('label[for]').forEach(el => el.htmlFor = el.htmlFor.replace('__prefix__', idx));
+
+  container.appendChild(node);
+  total.value = idx + 1;
+}
+
+function deleteInvestRow(btn) {
+  const row = btn.closest('[data-row]');
+  if (!row) return;
+  const del = row.querySelector('input[type=checkbox][name$="-DELETE"]');
+  if (del) {
+    del.checked = true;
+    row.style.opacity = .5;
+    row.style.pointerEvents = 'none';
+  } else {
+    row.remove();
+  }
+}
+
+function addAnimalRow() {
+  const container = document.getElementById('animal-rows');
+  if (!container) return;
+
+  const prefix = container.dataset.prefix;              // p.ej. "animales"
+  const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+  if (!total) return;
+
+  const idx = parseInt(total.value || '0', 10);
+
+  const tpl = document.getElementById('animal-prototype');
+  const frag = tpl.content.cloneNode(true);
+  const node = frag.querySelector('[data-row]');
+
+  node.querySelectorAll('[name]').forEach(el => el.name = el.name.replace('__prefix__', idx));
+  node.querySelectorAll('[id]').forEach(el => el.id = el.id.replace('__prefix__', idx));
+  node.querySelectorAll('label[for]').forEach(el => el.htmlFor = el.htmlFor.replace('__prefix__', idx));
+
+  container.appendChild(node);
+  total.value = idx + 1;
+}
+
+function deleteAnimalRow(btn) {
+  const row = btn.closest('[data-row]');
+  if (!row) return;
+  const del = row.querySelector('input[type=checkbox][name$="-DELETE"]');
+  if (del) {
+    del.checked = true;
+    row.style.opacity = .5;
+    row.style.pointerEvents = 'none';
+  } else {
+    row.remove();
+  }
+}
+
+function addAnlgRow() {
+    const container = document.getElementById('anlg-rows');
+    if (!container) return;
+
+    const prefix = container.dataset.prefix;  // p.ej. "anlg"
+    const totalInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+    if (!totalInput) return;
+
+    const idx = parseInt(totalInput.value || '0', 10);
+
+    const tmpl = document.getElementById('anlg-empty-form');
+    const frag = tmpl.content.cloneNode(true);
+    const row = frag.querySelector('[data-anlg-row]');
+
+    // reemplazar __prefix__ en name/id/for
+    row.querySelectorAll('[name]').forEach(el => {
+      el.name = el.name.replace('__prefix__', idx);
+    });
+    row.querySelectorAll('[id]').forEach(el => {
+      el.id = el.id.replace('__prefix__', idx);
+    });
+    row.querySelectorAll('label[for]').forEach(el => {
+      el.htmlFor = el.htmlFor.replace('__prefix__', idx);
+    });
+
+    container.appendChild(row);
+    totalInput.value = idx + 1;
+}
+
+function deleteAnlgRow(btn) {
+    const row = btn.closest('[data-anlg-row]');
+    if (!row) return;
+
+    const del = row.querySelector('input[type=checkbox][name$="-DELETE"]');
+    if (del) {
+      del.checked = true;
+      row.style.opacity = .5;
+      row.style.pointerEvents = 'none';
+    } else {
+      row.remove();
+    }
+}
+
+</script>
+
+
+
+{% endblock %}

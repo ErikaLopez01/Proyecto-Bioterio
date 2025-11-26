@@ -1,0 +1,21 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+<h3 class="mb-3">Asignar roles</h3>
+
+<form method="post" class="card card-body shadow-sm">
+  {% csrf_token %}
+  <div class="mb-3">
+    <strong>Usuario:</strong> {{ view.usuario.username }} — {{ view.usuario.get_full_name }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.roles }}
+    {% for e in form.roles.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+
+  <div>
+    <button class="btn btn-primary">Guardar</button>
+    <a class="btn btn-outline-secondary" href="{% url 'usuarios:list' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

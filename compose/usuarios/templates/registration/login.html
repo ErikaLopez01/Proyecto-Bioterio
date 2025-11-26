@@ -1,0 +1,85 @@
+{% extends "insumos/base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+  <div class="card shadow-lg border-0 rounded-4" style="max-width: 420px; width: 100%;">
+    <div class="card-header bg-dark text-white rounded-top-4 py-3 text-center">
+      <div class="fw-semibold small text-uppercase opacity-75">Bienvenido a</div>
+      <h4 class="m-0">Bioterio</h4>
+    </div>
+
+    <div class="card-body p-4">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} mb-3">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        <div class="mb-3">
+          <label for="id_username" class="form-label">Usuario</label>
+          {{ form.username }}  
+          {% for e in form.username.errors %}
+            <div class="text-danger small mt-1">{{ e }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label for="id_password" class="form-label">Contraseña</label>
+          <div class="input-group input-group-lg">
+            {{ form.password }}  
+            <button type="button" class="btn btn-outline-secondary" id="togglePass" aria-label="Mostrar contraseña">👁</button>
+          </div>
+          {% for e in form.password.errors %}
+            <div class="text-danger small mt-1">{{ e }}</div>
+          {% endfor %}
+        </div>
+
+        <button class="btn btn-primary w-100 btn-lg">Entrar</button>
+      </form>
+
+      <div class="d-flex justify-content-between mt-3">
+        <a class="small" href="#" onclick="return false;">¿Cambiar contraseña?</a>
+      </div>
+      <div class="text-center text-muted small mt-3">
+        Acceso restringido. Si no recuerdas tus credenciales, contacta al administrador.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Mejorar inputs sin filtros/templatetags: añade clases y placeholders
+  (function () {
+    const u = document.getElementById('id_username');
+    const p = document.getElementById('id_password');
+    if (u) {
+      u.classList.add('form-control','form-control-lg');
+      if (!u.placeholder) u.placeholder = 'Tu usuario';
+    }
+    if (p) {
+      p.classList.add('form-control');
+      if (!p.placeholder) p.placeholder = 'Tu contraseña';
+    }
+    // Mostrar/ocultar contraseña
+    const btn = document.getElementById('togglePass');
+    if (btn && p) {
+      btn.addEventListener('click', function () {
+        const type = p.getAttribute('type') === 'password' ? 'text' : 'password';
+        p.setAttribute('type', type);
+        this.textContent = type === 'password' ? '👁' : '🙈';
+      });
+    }
+  })();
+</script>
+
+{% endblock %}

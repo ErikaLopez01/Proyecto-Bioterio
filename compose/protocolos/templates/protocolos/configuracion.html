@@ -1,0 +1,26 @@
+{% extends "insumos/base.html" %}
+
+{% block content %}
+<h3 class="mb-4">Configuración del Sistema – Protocolos</h3>
+
+<p class="text-muted">
+  Aquí puedes gestionar las instituciones disponibles para los formularios y los procedimientos base.
+</p>
+
+<div class="list-group">
+
+  <a href="{% url 'protocolos:instituciones_list' %}"
+     class="list-group-item list-group-item-action">
+    <strong>Instituciones</strong>  
+    <div class="small text-muted">Agregar, editar o eliminar instituciones disponibles para los protocolos.</div>
+  </a>
+
+  <a href="{% url 'protocolos:procedimientos_list' %}"
+     class="list-group-item list-group-item-action">
+    <strong>Procedimientos base</strong>  
+    <div class="small text-muted">Gestionar la lista de procedimientos que aparecen como ítems del protocolo.</div>
+  </a>
+
+</div>
+
+{% endblock %}
