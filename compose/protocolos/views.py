@@ -1,9 +1,11 @@
 # protocolos/views.py
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, View, TemplateView, UpdateView
+from django.db import transaction
 from django.db.models import Q
 from .models import Protocolo, ProcedimientoBase, Institucion
 from .forms import (
@@ -96,6 +98,7 @@ class ProtocoloCreateView(LoginRequiredMixin, CreateView):
 
         return ctx
 
+    @transaction.atomic
     def form_valid(self, form):
         """
         Guarda el protocolo y todos los formsets.
@@ -141,6 +144,7 @@ class ProtocoloCreateView(LoginRequiredMixin, CreateView):
 
 
 # ================== EDICIÓN ==================
+@login_required
 def protocolo_edit(request, pk):
     """
     Edición con formsets (investigadores, procedimientos, analgésicos).
@@ -179,12 +183,12 @@ def protocolo_edit(request, pk):
                 fs_anim.is_valid(),
             ]
         ):
-            
-            obj = form.save()
-            fs_invest.save()
-            fs_proc.save()
-            fs_anlg.save()
-            fs_anim.save()
+            with transaction.atomic():
+                obj = form.save()
+                fs_invest.save()
+                fs_proc.save()
+                fs_anlg.save()
+                fs_anim.save()
             messages.success(request, "Protocolo actualizado correctamente.")
             return redirect("protocolos:detail", pk=obj.pk)
     else:

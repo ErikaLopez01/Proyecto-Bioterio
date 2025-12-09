@@ -10,6 +10,8 @@ from .views import (
     UsuarioResetPasswordView,
     UsuarioToggleActivoView,
     CambiarMiPasswordView,
+    ForcedPasswordChangeView,
+    ForcedPasswordChangeDoneView,
 )
 
 app_name = "usuarios"
@@ -24,5 +26,6 @@ urlpatterns = [
     path("<int:pk>/toggle/", UsuarioToggleActivoView.as_view(), name="toggle"),
     path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
     path("cambiar-password/", CambiarMiPasswordView.as_view(), name="change_password"),  # <---
-
+    path("password/change/forced/", ForcedPasswordChangeView.as_view(), name="password_change_forced"),
+    path("password/change/forced/done/", ForcedPasswordChangeDoneView.as_view(), name="password_change_done"),
 ]

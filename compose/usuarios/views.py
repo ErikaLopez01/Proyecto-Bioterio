@@ -7,6 +7,7 @@ from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, CreateView, UpdateView, View, FormView
+from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView
 from django.utils.crypto import get_random_string
 from .forms import UserCreateForm, UserUpdateForm, PasswordChangeCustomForm 
 
@@ -118,7 +119,18 @@ class UsuarioResetPasswordView(LoginRequiredMixin, UserPassesTestMixin, View):
         temp = User.objects.make_random_password()
         usuario.set_password(temp)
         usuario.save()
-        messages.success(request, f"Contraseña temporal para {usuario.username}: {temp}")
+        # 1) marcar el flag
+        if hasattr(usuario, "security"):
+            usuario.security.must_change_password = True
+            usuario.security.save()
+
+        # 2) mensaje sin mostrar la clave
+        messages.success(
+            request,
+            f"Se generó una contraseña temporal para {usuario.username}. "
+            "El usuario deberá cambiarla al iniciar sesión."
+        )
+
         return redirect("usuarios:list")
 
 class CambiarMiPasswordView(LoginRequiredMixin, FormView):
@@ -145,3 +157,31 @@ class CambiarMiPasswordView(LoginRequiredMixin, FormView):
 
         messages.success(self.request, "Tu contraseña se actualizó correctamente.")
         return super().form_valid(form)
+
+class ForcedPasswordChangeView(PasswordChangeView):
+    template_name = "usuarios/password_change_forced.html"
+    success_url = reverse_lazy("usuarios:password_change_done")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        user = self.request.user
+
+        # Desmarcar el flag después de cambiar contraseña
+        if hasattr(user, "must_change_password"):
+            user.must_change_password = False
+            user.save()
+        elif hasattr(user, "security"):
+            user.security.must_change_password = False
+            user.security.save()
+
+        messages.success(self.request, "Tu contraseña ha sido actualizada. Puedes continuar usando el sistema.")
+        return response
+    
+
+class ForcedPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
+    """
+    Vista que se muestra después de que el usuario cambia
+    su contraseña obligatoriamente.
+    """
+    template_name = "usuarios/password_change_done.html"

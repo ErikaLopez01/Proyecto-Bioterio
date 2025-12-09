@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
+from django.db import transaction
 from django.db.models import F, Q
 
 from .forms import (
@@ -44,10 +45,12 @@ class GrupoListView(ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        grupos = list(ctx["grupos"])  # aseguro evaluación para sumar en Python
-        ctx["total_machos"] = sum(g.cantidad_machos for g in grupos)
-        ctx["total_hembras"] = sum(g.cantidad_hembras for g in grupos)
+        grupos = list(ctx.get("grupos", []))  
+
+        ctx["total_machos"] = sum((g.cantidad_machos or 0) for g in grupos)
+        ctx["total_hembras"] = sum((g.cantidad_hembras or 0) for g in grupos)
         ctx["total_general"] = ctx["total_machos"] + ctx["total_hembras"]
+
         return ctx
 
 
@@ -99,6 +102,7 @@ class MovimientoCreateView(LoginRequiredMixin, FormView):
         ctx["grupo"] = self.grupo
         return ctx
 
+    @transaction.atomic
     def form_valid(self, form):
         mov = form.save(commit=False)
         mov.grupo = self.grupo

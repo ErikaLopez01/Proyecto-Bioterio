@@ -19,6 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+DJANGO_ENV = os.getenv("DJANGO_ENV", "development")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY =  os.getenv("SECRET_KEY", "change-me")
 
@@ -53,7 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+    'usuarios.middleware.MustChangePasswordMiddleware',
+
 ]
 
 ROOT_URLCONF = 'bioterio.urls'
@@ -145,3 +147,21 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "login"
 
+if DJANGO_ENV == "production":
+    # Forzar HTTPS
+    SECURE_SSL_REDIRECT = True
+
+    # Cookies solo por HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HSTS: decirle al navegador que siempre use HTTPS
+    SECURE_HSTS_SECONDS = 31536000  # 1 año
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Evitar que el navegador intente adivinar tipos de contenido
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+    # Aseguramos que DEBUG esté apagado en producción
+    DEBUG = False
