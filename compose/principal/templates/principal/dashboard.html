@@ -1,111 +1,250 @@
+{# principal/templates/principal/dashboard.html #}
 {% extends "insumos/base.html" %}
+{% load static %}
+
 {% block content %}
+<div class="container mt-4">
 
-<div class="alert alert-warning d-flex flex-wrap gap-3 align-items-center justify-content-between">
-  <div class="fw-semibold">Alertas del inventario</div>
-  <div class="d-flex gap-2">
-    {% if anim_bajo_machos > 0 %}
-      <a class="badge text-bg-danger text-decoration-none p-2" href="{% url 'animales:list' %}?alert=low_m">
-        {{ anim_bajo_machos }} jaulas con machos bajo mínimo
-      </a>
-    {% else %}
-      <span class="badge text-bg-secondary p-2">0 jaulas con machos bajo mínimo</span>
-    {% endif %}
-
-    {% if anim_bajo_hembras > 0 %}
-      <a class="badge text-bg-danger text-decoration-none p-2" href="{% url 'animales:list' %}?alert=low_f">
-        {{ anim_bajo_hembras }} jaulas con hembras bajo mínimo
-      </a>
-    {% else %}
-      <span class="badge text-bg-secondary p-2">0 jaulas con hembras bajo mínimo</span>
-    {% endif %}
-
-    {% if ins_bajo_min > 0 %}
-      <a class="badge text-bg-danger text-decoration-none p-2" href="{% url 'insumos:list' %}?alert=critical">
-        {{ ins_bajo_min }} insumos críticos
-      </a>
-    {% else %}
-      <span class="badge text-bg-secondary p-2">0 insumos críticos</span>
-    {% endif %}
+  <!-- ENCABEZADO CON IMAGEN -->
+  <div class="row align-items-center mb-4">
+    <div class="col-md-8">
+      <h1 class="mb-1">Panel del Bioterio</h1>
+      <p class="text-muted">
+        Desde aquí puedes ver el estado general de animales, insumos y protocolos del bioterio.
+      </p>
+    </div>
+    <div class="col-md-4 text-md-end text-center">
+      <!-- Puedes poner un logo o imagen ilustrativa -->
+      <img src="{% static 'img/ratonlaboratorio.png' %}" alt="Bioterio"
+           class="img-fluid" style="max-height: 120px;">
+    </div>
   </div>
-</div>
 
-<div class="row g-3">
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header">Animales</div>
-      <div class="card-body">
-        <p class="mb-1"><strong>Machos:</strong> {{ anim_total_machos }}</p>
-        <p class="mb-1"><strong>Hembras:</strong> {{ anim_total_hembras }}</p>
-        <p class="mb-3"><strong>Total:</strong> {{ anim_total }}</p>
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'animales:list' %}">Administrar animales</a>
+  <!-- KPIs ARRIBA (PROTOCOLOS, STOCKS) -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Protocolos totales</h6>
+          <h3>{{ total_protocolos }}</h3>
+          <small>Borradores: {{ total_proto_borrador }}</small><br>
+          <small>Enviados: {{ total_proto_enviados }}</small>
+        </div>
       </div>
     </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Estado de protocolos</h6>
+          <p class="mb-1">Aprobados: <strong>{{ total_proto_aprobados }}</strong></p>
+          <p class="mb-0">Rechazados: <strong>{{ total_proto_rechazados }}</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Animales bajo mínimo</h6>
+          <p class="mb-1">Machos: <strong>{{ anim_bajo_machos }}</strong></p>
+          <p class="mb-0">Hembras: <strong>{{ anim_bajo_hembras }}</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Insumos en nivel crítico</h6>
+          <h3>{{ ins_bajo_min }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <div class="card shadow-sm mt-3">
-      <div class="card-header">Últimos movimientos (Animales)</div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-sm mb-0">
-            <thead><tr><th>Fecha</th><th>Grupo</th><th>+</th><th>-</th></tr></thead>
-            <tbody>
-              {% for m in ult_mov_animales %}
-                <tr>
-                  <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
-                  <td>{{ m.grupo }}</td>
-                  <td>{{ m.cantidad_machos }} M / {{ m.cantidad_hembras }} F</td>
-                  <td>
-                    {% if m.tipo == m.BAJA or m.tipo == m.FALLECIMIENTO %}Sí{% else %}-{% endif %}
-                  </td>
-                </tr>
-              {% empty %}
-                <tr><td colspan="4" class="text-center text-muted">Sin movimientos</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+  <!-- ALERTAS / PENDIENTES -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          {% if es_admin %}
+            Protocolos pendientes de aprobación
+          {% else %}
+            Mis protocolos aprobados
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if es_admin %}
+            {% if protocolos_pendientes %}
+              <ul class="list-group list-group-flush">
+                {% for p in protocolos_pendientes %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                      <strong>{{ p.codigo|default:p.id }}</strong> - {{ p.titulo|default:"(sin título)" }}<br>
+                      <small class="text-muted">Creado por: {{ p.creado_por.username }}</small>
+                    </span>
+                    <a href="{% url 'protocolos:detail' p.pk %}" class="btn btn-sm btn-outline-primary">
+                      Ver
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mb-0">No hay protocolos pendientes de aprobación.</p>
+            {% endif %}
+          {% else %}
+            {% if protocolos_aprobados_usuario %}
+              <ul class="list-group list-group-flush">
+                {% for p in protocolos_aprobados_usuario %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                      <strong>{{ p.codigo|default:p.id }}</strong> - {{ p.titulo|default:"(sin título)" }}
+                    </span>
+                    <a href="{% url 'protocolos:detail' p.pk %}" class="btn btn-sm btn-outline-primary">
+                      Ver
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mb-0">No tienes protocolos aprobados aún.</p>
+            {% endif %}
+          {% endif %}
         </div>
       </div>
     </div>
 
-  </div>
-
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header">Insumos</div>
-      <div class="card-body">
-        <p class="mb-3"><strong>Total de insumos:</strong> {{ ins_total }}</p>
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'insumos:list' %}">Administrar insumos</a>
+    <!-- ACCESOS RÁPIDOS -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">Accesos rápidos</div>
+        <div class="card-body d-flex flex-column gap-2">
+          <a href="{% url 'animales:list' %}" class="btn btn-outline-primary w-100">Ver animales</a>
+          <a href="{% url 'insumos:list' %}" class="btn btn-outline-primary w-100">Ver insumos</a>
+          <a href="{% url 'protocolos:list' %}" class="btn btn-outline-primary w-100">Ver protocolos</a>
+          <a href="{% url 'principal:reportes_home' %}" class="btn btn-primary w-100">
+            Ver reportes
+          </a>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="card shadow-sm mt-3">
-      <div class="card-header">Últimos movimientos (Insumos)</div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-sm mb-0">
-            <thead><tr><th>Fecha</th><th>Insumo</th><th>Cantidad</th><th>Motivo</th></tr></thead>
-            <tbody>
-              {% for m in ult_mov_insumos %}
+  <!-- ÚLTIMOS MOVIMIENTOS -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header">Últimos movimientos de animales</div>
+        <div class="card-body table-responsive">
+          {% if ult_mov_animales %}
+            <table class="table table-sm">
+              <thead>
                 <tr>
-                  <td>
-                    {% if m.fecha %}{{ m.fecha|date:"d/m/Y H:i" }}
-                    {% elif m.creado_en %}{{ m.creado_en|date:"d/m/Y H:i" }}
-                    {% else %}-{% endif %}
-                  </td>
-                  <td>{{ m.insumo }}</td>
-                  <td>{{ m.cantidad }}</td>
-                  <td>{{ m.motivo|default:"-" }}</td>
+                  <th>Fecha</th>
+                  <th>Grupo</th>
+                  <th>Especie</th>
+                  <th>Jaula</th>
+                  <th>Motivo</th>
                 </tr>
-              {% empty %}
-                <tr><td colspan="4" class="text-center text-muted">Sin movimientos</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for mov in ult_mov_animales %}
+                  <tr>
+                    <td>{{ mov.fecha }}</td>
+                    <td>{{ mov.grupo.id }}</td>
+                    <td>{{ mov.grupo.especie.nombre }}</td>
+                    <td>{{ mov.grupo.jaula.nombre }}</td>
+                    <td>{{ mov.motivo }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="mb-0">No hay movimientos recientes.</p>
+          {% endif %}
         </div>
       </div>
     </div>
 
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header">Últimos movimientos de insumos</div>
+        <div class="card-body table-responsive">
+          {% if ult_mov_insumos %}
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Insumo</th>
+                  <th>Tipo</th>
+                  <th>Cantidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for mov in ult_mov_insumos %}
+                  <tr>
+                    <td>{{ mov.fecha }}</td>
+                    <td>{{ mov.insumo.nombre }}</td>
+                    <td>{{ mov.tipo }}</td>
+                    <td>{{ mov.cantidad }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="mb-0">No hay movimientos de insumos recientes.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- SECCIÓN REPORTES -->
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <h3 class="mb-3">Reportes</h3>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Movimientos de animales</h5>
+          <p class="card-text">Filtra por fechas, grupos y motivos. Vista previa y descarga.</p>
+          <a href="{% url 'principal:reporte_mov_animales' %}" class="btn btn-sm btn-primary">Ver reporte</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puedes replicar esta card para otros reportes -->
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Protocolos por estado</h5>
+          <p class="card-text">Consulta protocolos enviados, aprobados o rechazados.</p>
+          <a href="{% url 'principal:reporte_protocolos' %}" class="btn btn-sm btn-primary">Ver reporte</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Movimientos de insumos</h5>
+          <p class="card-text">Analiza entradas y salidas de insumos por periodo.</p>
+          <a href="{% url 'principal:reporte_mov_insumos' %}" class="btn btn-sm btn-primary">Ver reporte</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Consumo por jaula / especie</h5>
+          <p class="card-text">Cruza consumo de insumos con jaulas y tipos de animales.</p>
+          <a href="{% url 'principal:reporte_consumos' %}" class="btn btn-sm btn-primary">Ver reporte</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 {% endblock %}

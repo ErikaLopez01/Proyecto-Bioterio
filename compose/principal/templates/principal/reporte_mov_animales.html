@@ -1,0 +1,67 @@
+{% extends "insumos/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Reporte de Movimientos de Animales</h2>
+
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <label class="form-label">Fecha desde</label>
+      {{ form.fecha_desde }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Fecha hasta</label>
+      {{ form.fecha_hasta }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Grupo</label>
+      {{ form.grupo }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Motivo</label>
+      {{ form.motivo }}
+    </div>
+    <div class="col-12 d-flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+      {% if movimientos %}
+        <button type="submit" name="export" value="csv" class="btn btn-outline-secondary">
+          Descargar CSV
+        </button>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if movimientos %}
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Grupo</th>
+            <th>Especie</th>
+            <th>Jaula</th>
+            <th>Motivo</th>
+            <th>Machos</th>
+            <th>Hembras</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mov in movimientos %}
+            <tr>
+              <td>{{ mov.fecha }}</td>
+              <td>{{ mov.grupo.id }}</td>
+              <td>{{ mov.grupo.especie.nombre }}</td>
+              <td>{{ mov.grupo.jaula.nombre }}</td>
+              <td>{{ mov.motivo }}</td>
+              <td>{{ mov.cantidad_machos }}</td>
+              <td>{{ mov.cantidad_hembras }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No hay resultados para los filtros seleccionados.</p>
+  {% endif %}
+</div>
+{% endblock %}
