@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.db import transaction
 from django.db.models import F
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
 from .forms import InsumoForm, MovimientoForm, CategoriaForm
@@ -48,6 +49,7 @@ class MovimientoCreateView(LoginRequiredMixin, FormView):
         self.insumo = get_object_or_404(Insumo, pk=kwargs["insumo_id"])
         return super().dispatch(request, *args, **kwargs)
 
+    @transaction.atomic
     def form_valid(self, form):
         mov = form.save(commit=False)
         mov.insumo = self.insumo

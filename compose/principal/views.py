@@ -9,6 +9,7 @@ from django.views.generic import TemplateView
 from django.db.models import F
 
 from animales.models import GrupoAnimal, MovimientoGrupo
+from insumos.models import Insumo, MovimientoInsumo
 
 class DashboardView(TemplateView):
     template_name = "principal/dashboard.html"
@@ -33,13 +34,17 @@ class DashboardView(TemplateView):
 
         # Insumos: hacemos try/except por si tu módulo no tiene estos campos/tablas
         try:
-            from insumos.models import Insumo, Movimiento
+            
             ctx["ins_bajo_min"] = Insumo.objects.filter(
                 stock_actual__lt=F("stock_minimo")
             ).count()
+
             ctx["ult_mov_insumos"] = (
-                Movimiento.objects.select_related("insumo").order_by("-fecha")[:5]
+                MovimientoInsumo.objects
+                .select_related("insumo")
+                .order_by("-fecha")[:5]
             )
+
         except Exception:
             ctx["ins_bajo_min"] = 0
             ctx["ult_mov_insumos"] = []
