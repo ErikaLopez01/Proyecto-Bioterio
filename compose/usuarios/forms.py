@@ -1,7 +1,7 @@
 """
 Crea/actualiza los grupos de roles después de aplicar migraciones.
 - Administrador: todos los permisos de insumos y animales.
-- Operador: ver todo + agregar/cambiar "movimientos".
+- Investigados: ver todo + agregar/cambiar "movimientos".
 - Lector: solo ver.
 """
 from django import forms
@@ -18,7 +18,7 @@ class UserCreateForm(UserCreationForm):
         label="Rol (Grupo)",
         queryset=Group.objects.none(),
         required=False,
-        help_text="Rol del usuario (Administrador / Operador)",
+        help_text="Rol del usuario (Administrador / Investigador)",
     )
 
     class Meta(UserCreationForm.Meta):

@@ -4,7 +4,7 @@ Vista del dashboard (página principal).
 - Lista últimos movimientos (breve)
 - Provee accesos a administrar Animales / Insumos
 """
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.db.models import F, Sum
 from django.http import HttpResponse
@@ -20,8 +20,10 @@ from insumos.models import Insumo, MovimientoInsumo
 from protocolos.models import Protocolo
 
 
-class DashboardView(TemplateView):
+class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "principal/dashboard.html"
+    login_url = "login"
+    redirect_field_name = None
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -85,7 +87,7 @@ class DashboardView(TemplateView):
         return ctx
 
 
-class ReportesHomeView(TemplateView):
+class ReportesHomeView(LoginRequiredMixin, TemplateView):
     """
     Página sencilla con links a todos los reportes.
     Puedes reutilizar las mismas cards que pusimos en el dashboard.
@@ -93,7 +95,7 @@ class ReportesHomeView(TemplateView):
     template_name = "principal/reportes_home.html"
 
 
-class ReporteMovimientosAnimalesView(TemplateView):
+class ReporteMovimientosAnimalesView(LoginRequiredMixin, TemplateView):
     template_name = "principal/reporte_mov_animales.html"
 
     def get_queryset(self, form):
@@ -149,7 +151,7 @@ class ReporteMovimientosAnimalesView(TemplateView):
         return response
 
 
-class ReporteProtocolosView(TemplateView):
+class ReporteProtocolosView(LoginRequiredMixin, TemplateView):
     template_name = "principal/reporte_protocolos.html"
 
     def get_queryset(self, form):
@@ -179,7 +181,7 @@ class ReporteProtocolosView(TemplateView):
         return self.render_to_response(ctx)
 
 
-class ReporteMovimientosInsumosView(TemplateView):
+class ReporteMovimientosInsumosView(LoginRequiredMixin, TemplateView):
     template_name = "principal/reporte_mov_insumos.html"
 
     def get_queryset(self, form):
@@ -212,7 +214,7 @@ class ReporteMovimientosInsumosView(TemplateView):
         return self.render_to_response(ctx)
 
 
-class ReporteConsumosView(TemplateView):
+class ReporteConsumosView(LoginRequiredMixin, TemplateView):
     """
     Stub sencillo: agrupa consumo de insumos por insumo.
     Más adelante se puede extender con jaula/especie.

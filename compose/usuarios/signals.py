@@ -20,11 +20,11 @@ def crear_roles_basicos(sender, **kwargs):
     admin.permissions.set(perms)
 
     
-    # Operador: ver todo + add_/change_ de “movimiento”
-    operador, _ = Group.objects.get_or_create(name="Operador")
-    operador_perms = perms.filter(
+    # Investigador: ver todo + add_/change_ de “movimiento”
+    investigador, _ = Group.objects.get_or_create(name="Investigador")
+    investigador_perms = perms.filter(
         Q(codename__startswith="view_")
         | Q(codename__startswith="add_", codename__contains="movimiento")
         | Q(codename__startswith="change_", codename__contains="movimiento")
     )
-    operador.permissions.set(operador_perms)
+    investigador.permissions.set(investigador_perms)
