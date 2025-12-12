@@ -5,6 +5,7 @@ from .models import Protocolo, ProtocoloAnimal, Procedimiento, ProcedimientoBase
 
 # Campos del modelo Protocolo que quieres exponer en el form principal
 WANTED_FIELDS = [
+    "titulo",
     "instituciones",
     "inv_nombre", "inv_departamento", "inv_telefono", "inv_email",
     "justificacion", "justificacion_3r",
@@ -39,6 +40,7 @@ class ProtocoloForm(forms.ModelForm):
         fields = WANTED_FIELDS
     
         widgets = {
+            "titulo": forms.TextInput(attrs={"class": "form-control", "placeholder": "Asigne un titulo al protocolo"}),
             "inv_nombre": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre y apellido"}),
             "inv_departamento": forms.TextInput(attrs={"class": "form-control", "placeholder": "Departamento/Unidad"}),
             "inv_telefono": forms.TextInput(attrs={"class": "form-control", "placeholder": "Teléfono"}),

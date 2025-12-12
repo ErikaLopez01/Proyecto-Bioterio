@@ -1,9 +1,23 @@
 {% extends "insumos/base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-4">
-  <h2>Reporte de Movimientos de Animales</h2>
 
+  <!-- Encabezado -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-0">Reporte de movimientos de animales</h2>
+      <p class="text-muted mb-0">
+        Filtra los movimientos por fechas, grupo y motivo. Puedes descargar los resultados en CSV.
+      </p>
+    </div>
+    <a href="{% url 'principal:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+      ← Volver al panel
+    </a>
+  </div>
+
+  <!-- Filtros -->
   <form method="get" class="row g-3 mb-4">
     <div class="col-md-3">
       <label class="form-label">Fecha desde</label>
@@ -31,9 +45,15 @@
     </div>
   </form>
 
+  <!-- Resumen -->
   {% if movimientos %}
+    <div class="alert alert-info py-2">
+      Se encontraron <strong>{{ movimientos|length }}</strong> movimientos que cumplen con los filtros aplicados.
+    </div>
+
+    <!-- Tabla de resultados -->
     <div class="table-responsive">
-      <table class="table table-striped table-sm">
+      <table class="table table-striped table-sm align-middle">
         <thead>
           <tr>
             <th>Fecha</th>
@@ -41,8 +61,8 @@
             <th>Especie</th>
             <th>Jaula</th>
             <th>Motivo</th>
-            <th>Machos</th>
-            <th>Hembras</th>
+            <th class="text-end">Machos</th>
+            <th class="text-end">Hembras</th>
           </tr>
         </thead>
         <tbody>
@@ -53,15 +73,15 @@
               <td>{{ mov.grupo.especie.nombre }}</td>
               <td>{{ mov.grupo.jaula.nombre }}</td>
               <td>{{ mov.motivo }}</td>
-              <td>{{ mov.cantidad_machos }}</td>
-              <td>{{ mov.cantidad_hembras }}</td>
+              <td class="text-end">{{ mov.cantidad_machos }}</td>
+              <td class="text-end">{{ mov.cantidad_hembras }}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   {% else %}
-    <p>No hay resultados para los filtros seleccionados.</p>
+    <p class="text-muted">No hay resultados para los filtros seleccionados.</p>
   {% endif %}
 </div>
 {% endblock %}

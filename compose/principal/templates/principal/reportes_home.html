@@ -1,0 +1,79 @@
+{% extends "insumos/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-0">Reportes del bioterio</h2>
+      <p class="text-muted mb-0">
+        Selecciona el reporte que deseas visualizar. Podrás aplicar filtros y, en algunos casos, descargar los datos.
+      </p>
+    </div>
+    <a href="{% url 'principal:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+      ← Volver al panel
+    </a>
+  </div>
+
+  <div class="row g-3 mt-2">
+
+    <div class="col-md-3">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Movimientos de animales</h5>
+          <p class="card-text flex-grow-1">
+            Consulta los movimientos de grupos de animales por fecha, grupo y motivo. Incluye opción de descarga CSV.
+          </p>
+          <a href="{% url 'principal:reporte_mov_animales' %}" class="btn btn-sm btn-primary mt-2">
+            Ver reporte
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Protocolos por estado</h5>
+          <p class="card-text flex-grow-1">
+            Filtra protocolos por fecha y estado (borrador, enviado, aprobado, rechazado).
+          </p>
+          <a href="{% url 'principal:reporte_protocolos' %}" class="btn btn-sm btn-primary mt-2">
+            Ver reporte
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Movimientos de insumos</h5>
+          <p class="card-text flex-grow-1">
+            Analiza entradas y salidas de insumos por fecha, insumo y tipo de movimiento.
+          </p>
+          <a href="{% url 'principal:reporte_mov_insumos' %}" class="btn btn-sm btn-primary mt-2">
+            Ver reporte
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Consumo de insumos</h5>
+          <p class="card-text flex-grow-1">
+            Resumen de consumos por insumo, con posibilidad de filtrar por período.
+          </p>
+          <a href="{% url 'principal:reporte_consumos' %}" class="btn btn-sm btn-primary mt-2">
+            Ver reporte
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

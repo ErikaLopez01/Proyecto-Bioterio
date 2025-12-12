@@ -2,10 +2,12 @@
 from django.shortcuts import redirect
 from django.urls import reverse
 
+
 class MustChangePasswordMiddleware:
     """
-    Si el usuario tiene must_change_password=True,
-    lo obliga a ir a la vista de cambio de contraseña antes de usar el sistema.
+    Si el usuario tiene el flag must_change_password=True,
+    lo fuerza a pasar por la pantalla de cambio de contraseña
+    antes de poder navegar el sistema.
     """
 
     def __init__(self, get_response):
@@ -14,27 +16,25 @@ class MustChangePasswordMiddleware:
     def __call__(self, request):
         user = request.user
 
-        # Rutas que SÍ se permiten aunque deba cambiar la contraseña
-        allowed_paths = {
-            reverse("password_change_forced"),    # vista de cambio obligatorio
-            reverse("password_change_done"),      # después de cambiar
-            reverse("logout"),                    # poder salir
-            reverse("login"),                     # login
-        }
+        # Si no está autenticado, no hacemos nada
+        if not user.is_authenticated:
+            return self.get_response(request)
 
-        if user.is_authenticated:
-            must_change = False
+        # Si el usuario no tiene perfil de seguridad, seguimos normal
+        security = getattr(user, "security", None)
+        if not security or not security.must_change_password:
+            return self.get_response(request)
 
-            # Opción A: modelo Usuario con campo propio
-            if hasattr(user, "must_change_password"):
-                must_change = user.must_change_password
+        # Rutas que SÍ se permiten aunque el usuario deba cambiar la contraseña
+        forced_url = reverse("usuarios:password_change_forced")
+        done_url = reverse("usuarios:password_change_done")
+        login_url = reverse("login")  # asumiendo que tu login se llama 'login'
+        logout_url = reverse("usuarios:logout")
 
-            # Opción B: perfil de seguridad
-            elif hasattr(user, "security"):
-                must_change = user.security.must_change_password
+        allowed_paths = {forced_url, done_url, login_url, logout_url}
 
-            if must_change and request.path not in allowed_paths:
-                return redirect("password_change_forced")
+        # Si está intentando ir a otra ruta, lo redirigimos al cambio forzado
+        if request.path not in allowed_paths:
+            return redirect("usuarios:password_change_forced")
 
-        response = self.get_response(request)
-        return response
+        return self.get_response(request)

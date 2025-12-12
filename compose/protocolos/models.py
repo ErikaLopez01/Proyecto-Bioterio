@@ -35,6 +35,8 @@ class Protocolo(models.Model):
         related_name="protocolos",
         verbose_name="Instituciones donde se realizará el proyecto",
     )
+    
+    titulo = models.CharField(max_length=200, blank=True)
 
     # Investigador responsable (nombre/correo/teléfono básicos)
     inv_nombre = models.CharField("Investigador responsable", max_length=200)

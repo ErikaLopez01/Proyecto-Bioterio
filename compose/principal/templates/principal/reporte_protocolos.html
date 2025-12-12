@@ -1,0 +1,71 @@
+{% extends "insumos/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-0">Reporte de protocolos</h2>
+      <p class="text-muted mb-0">
+        Filtra los protocolos por rango de fechas y estado (borrador, enviado, aprobado, rechazado).
+      </p>
+    </div>
+    <a href="{% url 'principal:reportes_home' %}" class="btn btn-outline-secondary btn-sm">
+      ← Volver a reportes
+    </a>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <label class="form-label">Fecha desde</label>
+      {{ form.fecha_desde }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Fecha hasta</label>
+      {{ form.fecha_hasta }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Estado</label>
+      {{ form.estado }}
+    </div>
+    <div class="col-12 d-flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+  </form>
+
+  {% if protocolos %}
+    <div class="alert alert-info py-2">
+      Se encontraron <strong>{{ protocolos|length }}</strong> protocolos para los filtros aplicados.
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Código / ID</th>
+            <th>Título</th>
+            <th>Estado</th>
+            <th>Fecha creación</th>
+            <th>Investigador</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in protocolos %}
+            <tr>
+              <td>{{ p.codigo|default:p.id }}</td>
+              <td>{{ p.titulo|default:"(sin título)" }}</td>
+              <td>{{ p.get_estado_display|default:p.estado }}</td>
+              <td>{{ p.creado_en|date:"Y-m-d H:i" }}</td>
+              <td>{{ p.creado_por.username }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No hay protocolos para los filtros seleccionados.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

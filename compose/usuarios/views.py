@@ -116,7 +116,7 @@ class UsuarioResetPasswordView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def post(self, request, pk):
         usuario = get_object_or_404(User, pk=pk)
-        temp = User.objects.make_random_password()
+        temp = get_random_string(12)
         usuario.set_password(temp)
         usuario.save()
         # 1) marcar el flag
@@ -168,10 +168,7 @@ class ForcedPasswordChangeView(PasswordChangeView):
         user = self.request.user
 
         # Desmarcar el flag después de cambiar contraseña
-        if hasattr(user, "must_change_password"):
-            user.must_change_password = False
-            user.save()
-        elif hasattr(user, "security"):
+        if hasattr(user, "security"):
             user.security.must_change_password = False
             user.security.save()
 

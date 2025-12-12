@@ -47,10 +47,15 @@
                       <div class="col-12">
                         <label class="form-label">Instituciones donde se realizará el proyecto</label>
                         {{ form.instituciones }} {{ form.instituciones.errors }}
-                        <div class="form-text">Puede seleccionar una o varias instituciones.</div>
                       </div>
                     {% endif %}
-
+                    {% if form.titulo %}
+                      <div class="col-md-6"> 
+                        <label class="form-label required-asterisk">Titulo del Protocolo</label>
+                        {{ form.titulo }} {{ form.titulo.errors }}
+                      </div>
+                    {% endif %}
+                    
                     {% if form.inv_nombre %}
                       <div class="col-md-6">
                         <label class="form-label required-asterisk">Nombre</label>

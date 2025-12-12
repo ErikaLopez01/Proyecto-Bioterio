@@ -6,10 +6,15 @@ Vista del dashboard (página principal).
 """
 
 from django.views.generic import TemplateView
-from django.db.models import F
+from django.db.models import F, Sum
 from django.http import HttpResponse
 import csv
-from .forms import ReporteMovimientosAnimalesForm
+from .forms import (
+    ReporteMovimientosAnimalesForm,
+    ReporteProtocolosForm,
+    ReporteMovimientosInsumosForm,
+    ReporteConsumosForm,
+)
 from animales.models import GrupoAnimal, MovimientoGrupo
 from insumos.models import Insumo, MovimientoInsumo
 from protocolos.models import Protocolo
@@ -32,7 +37,6 @@ class DashboardView(TemplateView):
 
         # === Animales bajo mínimo ===
         grupos = GrupoAnimal.objects.select_related("especie", "cepa", "jaula")
-       
         ctx["anim_bajo_machos"] = grupos.filter(
             cantidad_machos__lt=F("stock_minimo_machos")
         ).count()
@@ -71,14 +75,24 @@ class DashboardView(TemplateView):
             .select_related("grupo", "grupo__especie", "grupo__jaula")
             .order_by("-fecha")[:5]
         )
-        
+
         ctx["ult_mov_insumos"] = (
             MovimientoInsumo.objects
             .select_related("insumo")
             .order_by("-fecha")[:5]
         )
+
         return ctx
-    
+
+
+class ReportesHomeView(TemplateView):
+    """
+    Página sencilla con links a todos los reportes.
+    Puedes reutilizar las mismas cards que pusimos en el dashboard.
+    """
+    template_name = "principal/reportes_home.html"
+
+
 class ReporteMovimientosAnimalesView(TemplateView):
     template_name = "principal/reporte_mov_animales.html"
 
@@ -103,12 +117,12 @@ class ReporteMovimientosAnimalesView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         form = ReporteMovimientosAnimalesForm(request.GET or None)
-
+        
         movimientos = MovimientoGrupo.objects.none()
+
         if form.is_valid():
             movimientos = self.get_queryset(form)
-
-            # Si el usuario pidió descarga CSV
+           
             if request.GET.get("export") == "csv":
                 return self._export_csv(movimientos)
 
@@ -119,8 +133,7 @@ class ReporteMovimientosAnimalesView(TemplateView):
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="reporte_movimientos_animales.csv"'
         writer = csv.writer(response)
-        # Cabeceras
-        writer.writerow(["Fecha", "Grupo", "Especie", "Jaula", "Motivo", "Cantidad machos", "Cantidad hembras"])
+        writer.writerow(["Fecha", "Grupo", "Especie", "Jaula", "Motivo", "Machos", "Hembras"])
 
         for mov in queryset:
             writer.writerow([
@@ -135,3 +148,99 @@ class ReporteMovimientosAnimalesView(TemplateView):
 
         return response
 
+
+class ReporteProtocolosView(TemplateView):
+    template_name = "principal/reporte_protocolos.html"
+
+    def get_queryset(self, form):
+        qs = Protocolo.objects.select_related("creado_por")
+
+        fecha_desde = form.cleaned_data.get("fecha_desde")
+        fecha_hasta = form.cleaned_data.get("fecha_hasta")
+        estado = form.cleaned_data.get("estado")
+
+        if fecha_desde:
+            qs = qs.filter(creado_en__date__gte=fecha_desde)
+        if fecha_hasta:
+            qs = qs.filter(creado_en__date__lte=fecha_hasta)
+        if estado:
+            qs = qs.filter(estado=estado)
+
+        return qs.order_by("-creado_en")
+
+    def get(self, request, *args, **kwargs):
+        form = ReporteProtocolosForm(request.GET or None)
+        items = Protocolo.objects.none()
+
+        if form.is_valid():
+            items = self.get_queryset(form)
+
+        ctx = self.get_context_data(form=form, protocolos=items)
+        return self.render_to_response(ctx)
+
+
+class ReporteMovimientosInsumosView(TemplateView):
+    template_name = "principal/reporte_mov_insumos.html"
+
+    def get_queryset(self, form):
+        qs = MovimientoInsumo.objects.select_related("insumo")
+
+        fecha_desde = form.cleaned_data.get("fecha_desde")
+        fecha_hasta = form.cleaned_data.get("fecha_hasta")
+        insumo = form.cleaned_data.get("insumo")
+        tipo = form.cleaned_data.get("tipo")
+
+        if fecha_desde:
+            qs = qs.filter(fecha__date__gte=fecha_desde)
+        if fecha_hasta:
+            qs = qs.filter(fecha__date__lte=fecha_hasta)
+        if insumo:
+            qs = qs.filter(insumo=insumo)
+        if tipo:
+            qs = qs.filter(tipo__icontains=tipo)
+
+        return qs.order_by("-fecha")
+
+    def get(self, request, *args, **kwargs):
+        form = ReporteMovimientosInsumosForm(request.GET or None)
+        items = MovimientoInsumo.objects.none()
+
+        if form.is_valid():
+            items = self.get_queryset(form)
+
+        ctx = self.get_context_data(form=form, movimientos=items)
+        return self.render_to_response(ctx)
+
+
+class ReporteConsumosView(TemplateView):
+    """
+    Stub sencillo: agrupa consumo de insumos por insumo.
+    Más adelante se puede extender con jaula/especie.
+    """
+    template_name = "principal/reporte_consumos.html"
+
+    def get(self, request, *args, **kwargs):
+        form = ReporteConsumosForm(request.GET or None)
+
+        queryset = MovimientoInsumo.objects.select_related("insumo")
+        if form.is_valid():
+            fecha_desde = form.cleaned_data.get("fecha_desde")
+            fecha_hasta = form.cleaned_data.get("fecha_hasta")
+            insumo = form.cleaned_data.get("insumo")
+
+            if fecha_desde:
+                queryset = queryset.filter(fecha__date__gte=fecha_desde)
+            if fecha_hasta:
+                queryset = queryset.filter(fecha__date__lte=fecha_hasta)
+            if insumo:
+                queryset = queryset.filter(insumo=insumo)
+
+        agregados = (
+            queryset
+            .values("insumo__nombre")
+            .annotate(total=Sum("cantidad"))
+            .order_by("insumo__nombre")
+        )
+
+        ctx = self.get_context_data(form=form, consumos=agregados)
+        return self.render_to_response(ctx)
