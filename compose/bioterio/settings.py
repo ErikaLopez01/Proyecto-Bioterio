@@ -21,7 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DJANGO_ENV = os.getenv("DJANGO_ENV", "development")
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY =  os.getenv("SECRET_KEY", "change-me")
+SECRET_KEY =  os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY no definida. Configure la variable de entorno.")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "0") == "1"
@@ -165,3 +168,4 @@ if DJANGO_ENV == "production":
 
     # Aseguramos que DEBUG esté apagado en producción
     DEBUG = False
+ 

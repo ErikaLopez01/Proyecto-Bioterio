@@ -82,6 +82,10 @@
       {{ form.grupo }}
     </form>
   </div>
+
+    </div>
+  {% endif %}
+
 </div>
 
 <script>
@@ -97,7 +101,7 @@
 
   const allMotivoOptions = Array.from(motSelect.options);
 
-  // 🔴 OJO: claves por TEXTO visible: Ingreso, Salida, Ajuste, Traslado
+  //Ingreso, Salida, Ajuste, Traslado
   const motivosPorCategoria = {
     "ingreso": ["Compra", "Nacimiento"],
     "salida": ["Venta", "Muerte", "Eutanasia", "Protocolo"],

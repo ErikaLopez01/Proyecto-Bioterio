@@ -656,7 +656,7 @@
     const container = document.getElementById('invest-rows');
     const prefix = container.dataset.prefix;
     const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
-    const idx = parseInt(total.value || '0', 10);
+    const idx = Number.parseInt(total.value || '0', 10);
 
     const tmpl = document.getElementById('invest-empty-form').content.cloneNode(true);
     tmpl.querySelectorAll('[name],[id],[for]').forEach(el => {
@@ -688,7 +688,7 @@
     if (!container) return;
     const prefix = container.dataset.prefix;
     const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
-    const idx = parseInt(total.value || '0', 10);
+    const idx = Number.parseInt(total.value || '0', 10);
 
     const tmpl = document.getElementById('anim-empty-form').content.cloneNode(true);
     tmpl.querySelectorAll('[name],[id],[for]').forEach(el => {
@@ -722,7 +722,7 @@
 
     const prefix = container.dataset.prefix;
     const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
-    const idx = parseInt(total.value || '0', 10);
+    const idx = Number.parseInt(total.value || '0', 10);
 
     const tpl = document.getElementById('anlg-empty-form');
     const frag = tpl.content.cloneNode(true);

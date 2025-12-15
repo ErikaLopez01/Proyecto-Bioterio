@@ -685,7 +685,7 @@ function addInvestRow() {
   const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
   if (!total) return;
 
-  const idx = parseInt(total.value || '0', 10);
+  const idx = Number.parseInt(total.value || '0', 10);
 
   // Clonamos desde <template>
   const tpl = document.getElementById('invest-prototype');
@@ -722,7 +722,7 @@ function addAnimalRow() {
   const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
   if (!total) return;
 
-  const idx = parseInt(total.value || '0', 10);
+  const idx = Number.parseInt(total.value || '0', 10);
 
   const tpl = document.getElementById('animal-prototype');
   const frag = tpl.content.cloneNode(true);
@@ -757,7 +757,7 @@ function addAnlgRow() {
     const totalInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
     if (!totalInput) return;
 
-    const idx = parseInt(totalInput.value || '0', 10);
+    const idx = Number.parseInt(totalInput.value || '0', 10);
 
     const tmpl = document.getElementById('anlg-empty-form');
     const frag = tmpl.content.cloneNode(true);

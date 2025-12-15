@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.core.exceptions import ValidationError
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
 from django.db import transaction
 from django.db.models import F, Q
@@ -107,7 +108,12 @@ class MovimientoCreateView(LoginRequiredMixin, FormView):
         mov = form.save(commit=False)
         mov.grupo = self.grupo
         mov.usuario = self.request.user if self.request.user.is_authenticated else None
-        mov.save()  # aplica stock en save()
+        try:
+            mov.save()  # aplica stock en save()
+        except ValidationError as e:
+            # Esto muestra el error en el formulario
+            form.add_error(None, e.messages[0] if hasattr(e, "messages") else str(e))
+            return self.form_invalid(form)
         messages.success(self.request, "Movimiento registrado.")
         return redirect("animales:list")
 

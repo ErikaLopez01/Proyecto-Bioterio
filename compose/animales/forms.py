@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import GrupoAnimal, MovimientoGrupo, Especie, Cepa, Jaula
 
 
@@ -72,7 +73,17 @@ class MovimientoGrupoForm(forms.ModelForm):
         mot = cleaned.get("motivo")
         protocolo = cleaned.get("protocolo")
         jaula_destino = cleaned.get("jaula_destino")
+        grupo = self.instance.grupo if self.instance.pk else cleaned.get("grupo")
+        machos = cleaned.get("cantidad_machos") or 0
+        hembras = cleaned.get("cantidad_hembras") or 0
 
+        if grupo and cat == MovimientoGrupo.CAT_SALIDA:
+            if machos > grupo.cantidad_machos or hembras > grupo.cantidad_hembras:
+                raise ValidationError(
+                    f"Stock insuficiente. Disponibles -> Machos: {grupo.cantidad_machos}, Hembras: {grupo.cantidad_hembras}. "
+                    f"Solicitado -> Machos: {machos}, Hembras: {hembras}."
+                )
+            
         # 1) Motivo coherente con la categoría
         if cat and mot:
             permitidos = MovimientoGrupo.MOTIVOS_POR_CATEGORIA.get(cat, [])
